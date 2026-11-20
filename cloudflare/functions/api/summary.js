@@ -39,7 +39,7 @@ export async function onRequestGet({ request, env }) {
     `出力形式（この形式以外は書かない）：\n要約:\n- （1行目・60字以内）\n- （2行目・60字以内）\n- （3行目・60字以内）\nなぜ話題:\n（なぜ注目されているのかを1〜2文、本文から分かる範囲で）\n\n本文:\n${text}`;
   let out = "";
   try { const r = await env.AI.run(MODEL, { messages: [{ role: "user", content: prompt }], max_tokens: 600, temperature: 0.2 }); out = String(r?.response || ""); }
-  catch (e) { return json({ error: "AIが混み合っています。少し待ってからお試しください。" }, 503); }
+  catch (e) { return json({ error: "AIが混み合っています。少し待ってからお試しください。", detail: String(e && e.message || e).slice(0, 300) }, 503); }
   const lines = (out.split(/なぜ話題[:：]/)[0].match(/^\s*[-・*]\s*(.+)$/gm) || []).map((l) => l.replace(/^\s*[-・*]\s*/, "").trim()).filter(Boolean).slice(0, 3);
   const why = ((out.split(/なぜ話題[:：]/)[1] || "").trim().split("\n").filter((l) => l.trim()).join(" ")).slice(0, 300);
   if (!lines.length) return json({ error: "要約を作れませんでした。" }, 502);
