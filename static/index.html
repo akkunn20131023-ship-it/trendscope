@@ -174,7 +174,7 @@ mark[data-l]:hover::after{content:attr(data-l);position:absolute;transform:trans
 <main class="wrap view on" id="view-news">
   <section class="checker">
     <h2>🧊 冷静判定チェッカー</h2>
-    <p class="hint">YouTubeの釣りタイトル・SNSの怪しい投稿・記事URLを貼り付け → 煽り度と「本当は何が書いてあるか」を判定します（Ctrl+Enterでも実行）</p>
+    <p class="hint">YouTubeの釣りタイトル・SNSの怪しい投稿・記事URLを貼り付け → 釣り度と「本当は何が書いてあるか」を判定します（Ctrl+Enterでも実行）</p>
     <div class="crow">
       <textarea id="inp" placeholder="例）【衝撃】99%の人が知らない〇〇の真実がヤバすぎる…！！  /  https://www.youtube.com/watch?v=…"></textarea>
       <button class="btn pri" id="go" style="min-width:110px">判定する</button>
@@ -285,12 +285,12 @@ function card(i){
     <div class="cb">
       <div class="meta"><span class="src">${esc(i.source)}</span><span>${ago(i.time)}</span>
         ${i.score?`<span>▲${kfmt(i.score)}</span>`:""}${i.comments?`<span>💬${kfmt(i.comments)}</span>`:""}
-        <span class="badge b${b.stars}" data-act="why" title="クリックで理由を表示">煽り ${stars(b.stars)}</span></div>
+        <span class="badge b${b.stars}" data-act="why" title="クリックで理由を表示">釣り ${stars(b.stars)}</span></div>
       <h3 class="tja">${esc(i.title_ja||i.title)}</h3>
       ${S.en && i.translated?`<p class="ten">${esc(i.title)}</p>`:""}
       ${i.desc_ja?`<p class="desc">${esc(i.desc_ja)}</p>`:""}
       <div class="sumbox"></div>
-      <div class="reasons">${esc(b.label)}${b.reasons?.length?"：<br>・"+b.reasons.map(esc).join("<br>・"):"（目立った煽り表現なし）"}</div>
+      <div class="reasons">${esc(b.label)}${b.reasons?.length?"：<br>・"+b.reasons.map(esc).join("<br>・"):"（目立った釣り表現なし）"}</div>
       <div class="acts">
         <a class="ib" href="${esc(i.url)}" target="_blank" rel="noopener">元リンク ↗</a>
         ${ext?`<a class="ib" href="${esc(i.ext_url)}" target="_blank" rel="noopener">記事本体 ↗</a>`:""}
@@ -370,7 +370,7 @@ async function runCheck(){
           ${r.title_ja?`<div style="color:var(--sub);font-size:13px;margin-top:4px">訳：${esc(r.title_ja)}</div>`:""}</div>
         <div class="box"><h3>判定の理由</h3><ul>${r.reasons.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
         <div class="box"><h3>タイトルと中身のギャップ</h3><ul>${r.gap.notes.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
-        <div class="box"><h3>煽りを抜いた冷静な見出し</h3>
+        <div class="box"><h3>釣り要素を抜いた冷静な見出し</h3>
           ${r.calm_title?`<div class="calm">${esc(r.calm_title_ja||r.calm_title)}</div>`:""}
           ${r.calm_title_ja?`<div style="color:var(--dim);font-size:12px">${esc(r.calm_title)}</div>`:""}
           ${r.calm_note?`<div style="color:var(--warn);font-size:13px;margin-top:4px">⚠ ${esc(r.calm_note)}</div>`:""}</div>

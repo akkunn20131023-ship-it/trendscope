@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""釣りタイトル・煽り表現 冷静判定エンジン（外部ライブラリ不要）"""
+"""釣りタイトル 冷静判定エンジン（外部ライブラリ不要）"""
 import re
 
 # (正規表現, 重み, カテゴリ, 冷静化で削除してよいか)
@@ -83,7 +83,7 @@ def _is_ja(text):
 
 
 def score_text(text):
-    """テキストの煽り度を採点。spans は元テキスト上の位置。"""
+    """テキストの釣り度を採点。spans は元テキスト上の位置。"""
     text = text or ""
     hits, spans, cats = [], [], {}
     score = 0
@@ -152,11 +152,11 @@ def to_stars(score):
     return 5
 
 
-STAR_LABEL = {1: "冷静・ほぼ事実", 2: "やや演出あり", 3: "煽り気味", 4: "かなり釣り", 5: "完全に釣り"}
+STAR_LABEL = {1: "冷静・ほぼ事実", 2: "やや演出あり", 3: "釣り気味", 4: "かなり釣り", 5: "完全に釣り"}
 
 
 def calm_title(text, spans):
-    """煽り部分を取り除いて落ち着いた見出しに整形"""
+    """釣り部分を取り除いて落ち着いた見出しに整形"""
     out, last = [], 0
     for s in sorted(spans, key=lambda x: x["start"]):
         if s["start"] < last:
@@ -239,7 +239,7 @@ def gap_analysis(title, body, title_res):
         gap += min(30, diff * 0.5)
         notes.append("見出しは強い言葉なのに本文は落ち着いた内容（見出しだけ盛っている可能性）")
     elif title_res["score"] >= 30:
-        notes.append("本文も同じくらい強い表現を使っている（記事全体が煽り調）")
+        notes.append("本文も同じくらい強い表現を使っている（記事全体が釣り調）")
     if coverage >= 0.7 and not missing_nums and diff <= 20:
         notes.append("見出しと本文の内容はおおむね一致しています")
     gap = int(max(0, min(100, gap)))
@@ -253,7 +253,7 @@ def split_sentences(text):
 
 
 def factual_summary(body, max_sent=3):
-    """煽りが少ない文を優先して冒頭から抜き出す抽出型要約"""
+    """釣りが少ない文を優先して冒頭から抜き出す抽出型要約"""
     sents = split_sentences(body or "")[:12]
     picked = []
     for s in sents:
@@ -273,11 +273,11 @@ def verdict_text(stars, gap_av, gap):
     elif stars == 2:
         base = "少し演出はありますが、許容範囲です。"
     elif stars == 3:
-        base = "煽り気味です。見出しより中身は地味な可能性があります。"
+        base = "釣り気味です。見出しより中身は地味な可能性があります。"
     elif stars == 4:
         base = "かなり釣り寄り。感情を動かす言葉が多いので一呼吸おいて。"
     else:
-        base = "典型的な釣り・煽りです。見出しの印象は割り引いて読みましょう。"
+        base = "典型的な釣りです。見出しの印象は割り引いて読みましょう。"
     if gap_av and gap >= 50:
         base += " 見出しと本文のズレも大きめです。"
     return base

@@ -309,7 +309,7 @@ window.onCheckResult = function(r){
   loadHistory();
   if(!r.yt_id) return;
   const grid=document.querySelector("#res .rgrid"); if(!grid) return;
-  const box=h("div",{className:"box full"},`<h3>🖼 サムネイルの煽り度</h3><div class="thumbrow"><img id="thImg" src="/api/thumb?id=${r.yt_id}" crossorigin="anonymous"><div id="thRes"><div class="mtag">画像を解析中…</div></div></div>`);
+  const box=h("div",{className:"box full"},`<h3>🖼 サムネイルの釣り度</h3><div class="thumbrow"><img id="thImg" src="/api/thumb?id=${r.yt_id}" crossorigin="anonymous"><div id="thRes"><div class="mtag">画像を解析中…</div></div></div>`);
   grid.appendChild(box);
   const img=$("#thImg");
   img.onload=()=>analyzeThumb(img);
@@ -353,7 +353,7 @@ async function runOCR(img){
     const text=r.data.text.replace(/\s+/g," ").trim();
     if(!text){ out.textContent="サムネイルから文字は見つかりませんでした"; return; }
     const s=await api("/api/score_text",{text});
-    out.innerHTML=`<div style="color:var(--text);margin-top:6px">読み取った文字: 「${esc(text.slice(0,120))}」</div><div class="stars" style="color:${color(s.stars)}">${stars(s.stars)} 文字の煽り度 ${s.score}/100</div>${s.reasons.slice(0,3).map(x=>"・"+esc(x)).join("<br>")}`;
+    out.innerHTML=`<div style="color:var(--text);margin-top:6px">読み取った文字: 「${esc(text.slice(0,120))}」</div><div class="stars" style="color:${color(s.stars)}">${stars(s.stars)} 文字の釣り度 ${s.score}/100</div>${s.reasons.slice(0,3).map(x=>"・"+esc(x)).join("<br>")}`;
   }catch(e){ out.textContent="文字認識に失敗しました: "+(e.message||e); }
   finally{ $("#ocrBtn").disabled=false; }
 }

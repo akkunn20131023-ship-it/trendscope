@@ -630,13 +630,13 @@ def analyze(inp):
     calm = az.calm_title(title, t_res["spans"])
     calm_note = ""
     if len(calm) < max(6, len(title) * 0.3):
-        calm_note = "見出しのほとんどが煽り表現で、具体的な情報がほぼ含まれていません"
+        calm_note = "見出しのほとんどが釣り表現で、具体的な情報がほぼ含まれていません"
     summary_src = body or (page["description"] if page else "")
     summary = az.factual_summary(summary_src) if summary_src else ""
     title_ja = translate_one(title) if not az._is_ja(title) else ""
     calm_ja = translate_one(calm) if calm and not az._is_ja(calm) else ""
     summary_ja = translate_one(summary[:1200]) if summary and not az._is_ja(summary) else summary
-    reasons = t_res["reasons"] or (["目立った煽り表現は見つかりませんでした"])
+    reasons = t_res["reasons"] or (["目立った釣り表現は見つかりませんでした"])
     if whole is not t_res and whole["score"] > t_res["score"]:
         reasons += [r for r in whole["reasons"] if r not in reasons][:3]
 

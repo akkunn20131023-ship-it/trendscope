@@ -160,7 +160,7 @@ async function openFraming(it){
       ${r.loaded_summary.length?`<div class="orig" style="margin:8px 0">${r.loaded_summary.map(([w,n])=>`<span class="ldw">${esc(w)} ×${n}</span>`).join("")}</div>`:""}
       <table class="frt"><tr><th>メディア</th><th>見出し</th><th>注目語</th></tr>
       ${r.rows.map(x=>`<tr><td><b>${esc(x.outlet)}</b><div class="mtag">${esc(x.country||"")}</div></td>
-        <td><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title_ja)}</a>${x.lang==="en"?`<div class="mtag">${esc(x.title)}</div>`:""}${x.bait>=30?`<span class="bait">煽り${x.bait}</span>`:""}</td>
+        <td><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title_ja)}</a>${x.lang==="en"?`<div class="mtag">${esc(x.title)}</div>`:""}${x.bait>=30?`<span class="bait">釣り${x.bait}</span>`:""}</td>
         <td>${x.loaded.map(w=>`<span class="ldw">${esc(w)}</span>`).join(" ")||'<span class="mtag">—</span>'}</td></tr>`).join("")||'<tr><td colspan=3 class="mtag">同じ出来事を報じた記事が見つかりませんでした</td></tr>'}</table>
       <p class="mtag">${esc(r.note)}</p>`;
   }catch(e){ $("#frm").innerHTML=`<div class="mtag">比較できませんでした: ${esc(e.message)}</div>`; }
@@ -313,12 +313,12 @@ function startGame(){
   const show=async()=>{
     if(i>=pool.length){
       ST.game.played++; ST.game.best=Math.max(ST.game.best,score); saveST(); checkBadges();
-      modal2("🎣 釣りか本物か 結果",`<div class="qres">${score} / ${pool.length}</div><p>${score===pool.length?"🎯 完璧！釣りへの耐性バッチリ":"煽りワードに注目すると見抜きやすくなります"}</p><button class="btn pri" id="gAgain">もう一度</button>`);
+      modal2("🎣 釣りか本物か 結果",`<div class="qres">${score} / ${pool.length}</div><p>${score===pool.length?"🎯 完璧！釣りへの耐性バッチリ":"釣りワードに注目すると見抜きやすくなります"}</p><button class="btn pri" id="gAgain">もう一度</button>`);
       $("#gAgain").onclick=startGame; return;
     }
     const real=pool[i].title_ja, fake=BAITS[Math.floor(Math.random()*BAITS.length)](real.replace(/[。！!]$/,""));
     const opts=shuffle([{t:real,real:true},{t:fake,real:false}]);
-    modal2(`🎣 本物の見出しはどっち？（${i+1}/${pool.length}）`, `<p class="mtag">片方は実際のニュース、もう片方は煽り表現を足した“釣り版”です</p><div class="gch">${opts.map((o,k)=>`<button class="btn gopt" data-k="${k}">${esc(o.t)}</button>`).join("")}</div><div id="gfb"></div>`);
+    modal2(`🎣 本物の見出しはどっち？（${i+1}/${pool.length}）`, `<p class="mtag">片方は実際のニュース、もう片方は釣り表現を足した“釣り版”です</p><div class="gch">${opts.map((o,k)=>`<button class="btn gopt" data-k="${k}">${esc(o.t)}</button>`).join("")}</div><div id="gfb"></div>`);
     document.querySelectorAll(".gopt").forEach(b=>b.onclick=async()=>{
       const o=opts[+b.dataset.k]; if(o.real) score++;
       document.querySelectorAll(".gopt").forEach(x=>{ x.disabled=true; x.classList.add(opts[+x.dataset.k].real?"pri":"fake"); });

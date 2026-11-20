@@ -2,10 +2,11 @@
 import { json, limited, sameText } from "../../lib/guard.js";
 import { translatePayload } from "../../lib/translate.js";
 import { updateArchive } from "../../lib/archive.js";
+import { maybeBuildToday } from "../../lib/today.js";
 
 const ALLOW = ["meta", "news", "digest", "geo", "conflicts", "emotions", "patterns", "markets", "holidays", "launches", "wiki", "compare"];
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   const lim = limited(request, "upload", 10, 60); if (lim) return lim;
   if (!env.TS) return json({ error: "KV（変数名 TS）が設定されていません" }, 500);
   if (!env.UPLOAD_SECRET || env.UPLOAD_SECRET.length < 16) return json({ error: "UPLOAD_SECRET が未設定（16文字以上）" }, 500);
@@ -21,5 +22,6 @@ export async function onRequestPost({ request, env }) {
   clean.meta.ai_translate = tr.enabled;
   await env.TS.put("latest", JSON.stringify(clean));
   let archived = 0; try { archived = await updateArchive(env, clean.news); } catch {}
+  waitUntil(maybeBuildToday(env, clean.news).catch(() => {}));
   return json({ stored: true, items: clean.news.length, at: Date.now(), translate: tr, archived });
 }

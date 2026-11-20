@@ -234,3 +234,19 @@ h1{font-size:16px;margin:0 0 4px}
 .share .sum{margin:14px 0}
 #instBtn{margin-left:6px;white-space:nowrap}
 #instBtn[hidden]{display:none}
+
+/* ===== 今日の5本 ===== */
+.todayBan{display:flex;align-items:center;gap:8px;margin:4px 0 8px;padding:11px 14px;border-radius:12px;background:linear-gradient(90deg,rgba(255,196,77,.16),rgba(91,157,255,.12));border:1px solid rgba(255,196,77,.35);color:var(--text);text-decoration:none;font-size:15px}
+.todayBan span{color:var(--sub);font-size:12.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.todayBan i{font-style:normal;font-size:20px;color:var(--sub)}
+.t5h{font-size:24px;margin:6px 0 4px}
+.t5 .t5n{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--acc);color:#0d1016;font-weight:800;font-size:13px}
+.t5 h2.tja{font-size:18px;line-height:1.5;margin:8px 0 4px}
+.t5 h2.tja a{color:inherit;text-decoration:none}
+.t5l{margin:8px 0;padding-left:20px;line-height:1.75;font-size:15px}
+.t5 details{margin:6px 0 10px;font-size:14px;color:var(--sub)}
+.t5 details summary{cursor:pointer;padding:4px 0}
+.t5 .card,.share .t5{margin-bottom:12px}
+.t5p{font-size:16px;margin:22px 0 8px}
+.t5past{display:flex;flex-wrap:wrap;gap:8px}
+.t5past a{padding:7px 12px;border:1px solid var(--line);border-radius:999px;color:var(--text);text-decoration:none;font-size:13.5px}

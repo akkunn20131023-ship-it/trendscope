@@ -40,7 +40,7 @@ function render(){
   $("#cnt").textContent=L.length+"件";
   $("#grid").innerHTML=L.map(i=>{ const b=i.bait||{stars:1}; const e=D.emoMap[i.id];
     return `<article class="card"><div class="cb">
-      <div class="meta"><span class="src">${esc(i.source)}</span>${e&&e!=="中立"?`<span class="emo" title="見出しの感情（機械的な目安）">${EMOJI[e]||""}</span>`:""}<span>${ago(i.time)}</span><span class="badge b${b.stars}" title="${esc(b.label||"")}">煽り ${stars(b.stars)}</span></div>
+      <div class="meta"><span class="src">${esc(i.source)}</span>${e&&e!=="中立"?`<span class="emo" title="見出しの感情（機械的な目安）">${EMOJI[e]||""}</span>`:""}<span>${ago(i.time)}</span><span class="badge b${b.stars}" title="${esc(b.label||"")}">釣り ${stars(b.stars)}</span></div>
       <h3 class="tja">${esc(i.title_ja||i.title)}</h3>${i.title_ja&&i.title_ja!==i.title?`<p class="ten">${esc(i.title)}</p>`:""}
       <div class="acts"><a class="ib" href="${esc(i.url)}" target="_blank" rel="noopener nofollow">元記事 ↗</a>${i.disc&&i.disc!==i.url?`<a class="ib" href="${esc(i.disc)}" target="_blank" rel="noopener nofollow">議論 ↗</a>`:""}<button class="ib" data-chk="${esc(i.title)}">🧊 判定</button><button class="ib" data-sum="${esc(i.id)}">📝 要約</button><button class="ib" data-share="${esc(i.id)}">🔗 共有</button></div>
       <div class="sum" id="sum-${esc(i.id)}" hidden></div>
@@ -105,7 +105,7 @@ function check(){
   $("#res").innerHTML=`<div class="rtop"><div class="meter" style="background:conic-gradient(${c} ${r.score*3.6}deg,#222b3a 0)"><div style="position:absolute;inset:7px;background:#121822;border-radius:50%;display:grid;place-items:center"><div style="color:${c}">${r.score}<small>釣り度/100</small></div></div></div>
     <div style="flex:1;min-width:220px"><div class="stars" style="color:${c}">${stars(r.stars)} <span style="font-size:15px;font-weight:700">${esc(LABELS[r.stars]||"")}</span></div></div></div>
     <div class="rgrid"><div class="box full"><h3>誇張されている箇所</h3><div class="hl">${highlight(v,r.spans)}</div></div>
-    <div class="box full"><h3>判定の理由</h3><ul>${(r.reasons.length?r.reasons:["目立った煽り表現は見つかりませんでした"]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div></div>`;
+    <div class="box full"><h3>判定の理由</h3><ul>${(r.reasons.length?r.reasons:["目立った釣り表現は見つかりませんでした"]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div></div>`;
 }
 $("#go").onclick=check; $("#inp").onkeydown=e=>{ if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)) check(); };
 
