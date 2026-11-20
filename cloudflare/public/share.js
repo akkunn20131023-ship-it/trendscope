@@ -28,7 +28,7 @@
     return j;
   }
   window.TSsummary = summary;
-  window.TSsumHTML = (j) => `<h2>📝 3行要約</h2><ul>${j.lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>${j.why ? `<h2>💡 なぜ話題？</h2><p>${esc(j.why)}</p>` : ""}<p class="mtag">${esc(j.note || "")}</p>`;
+  window.TSsumHTML = (j) => `<h2>📝 3行要約</h2><ul>${j.lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>${j.why ? `<h2>💡 なぜ話題？</h2><p>${esc(j.why.replace(/(^|\s)-\s+/g, "$1"))}</p>` : ""}<p class="mtag">${esc(j.note || "")}</p>`;
   const sb = $("#shareBtn"); if (sb) sb.onclick = () => shareIt(sb.dataset.url, sb.dataset.title);
   const btn = $("#sumBtn"), box = $("#sum");
   if (btn && box) btn.onclick = async () => {

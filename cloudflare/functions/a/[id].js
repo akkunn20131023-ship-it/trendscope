@@ -35,7 +35,7 @@ export async function onRequestGet({ params, request, env }) {
   <article class="card"><div class="cb">
     <div class="meta"><span class="src">${esc(item.source)}</span><span>${esc(when)}</span><span class="badge b${stars}">煽り ${STAR(stars)}</span></div>
     <h1 class="tja">${esc(title)}</h1>${item.title_ja && item.title_ja !== item.title ? `<p class="ten">${esc(item.title)}</p>` : ""}
-    <section class="sum" id="sum" data-id="${esc(item.id)}">${sum ? `<h2>📝 3行要約</h2><ul>${sum.lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>${sum.why ? `<h2>💡 なぜ話題？</h2><p>${esc(sum.why)}</p>` : ""}<p class="mtag">${esc(sum.note)}</p>` : `<button class="btn" id="sumBtn">📝 AIで3行要約する</button>`}</section>
+    <section class="sum" id="sum" data-id="${esc(item.id)}">${sum ? `<h2>📝 3行要約</h2><ul>${sum.lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>${sum.why ? `<h2>💡 なぜ話題？</h2><p>${esc(sum.why.replace(/(^|\s)-\s+/g, "$1"))}</p>` : ""}<p class="mtag">${esc(sum.note)}</p>` : `<button class="btn" id="sumBtn">📝 AIで3行要約する</button>`}</section>
     <div class="acts"><a class="ib" href="${esc(item.url)}" target="_blank" rel="noopener nofollow">元記事を読む ↗</a><button class="ib" id="shareBtn" data-url="${esc(url)}" data-title="${esc(title)}">🔗 共有</button><a class="ib" href="/">ほかのニュースを見る</a></div>
   </div></article>
   <p class="mtag">見出しの日本語訳・要約・煽り度は機械による自動処理です。記事の内容・正確性は元記事でご確認ください。</p>

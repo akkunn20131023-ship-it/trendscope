@@ -41,7 +41,7 @@ export async function onRequestGet({ request, env }) {
   try { const r = await chat(env.AI, prompt, { max_tokens: 700 }); out = r.text; model = r.model; }
   catch (e) { return json({ error: "AIが混み合っています。少し待ってからお試しください。", detail: String(e && e.message || e).slice(0, 300) }, 503); }
   const lines = (out.split(/なぜ話題[:：]/)[0].match(/^\s*[-・*]\s*(.+)$/gm) || []).map((l) => l.replace(/^\s*[-・*]\s*/, "").trim()).filter(Boolean).slice(0, 3);
-  const why = ((out.split(/なぜ話題[:：]/)[1] || "").trim().split("\n").filter((l) => l.trim()).join(" ")).slice(0, 300);
+  const why = (out.split(/なぜ話題[:：]/)[1] || "").split("\n").map((l) => l.replace(/^\s*[-・*]\s*/, "").trim()).filter(Boolean).join("").slice(0, 300);
   if (!lines.length) return json({ error: "要約を作れませんでした。" }, 502);
   const res = { id, lines, why, model: model.split("/").pop(), at: Date.now(), note: "AIによる自動要約です。正確な内容は元記事でご確認ください。" };
   try { await env.TS.put("sum:" + id, JSON.stringify(res), { expirationTtl: 30 * 86400 }); } catch {}
