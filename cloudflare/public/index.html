@@ -11,6 +11,10 @@
 <meta name="twitter:card" content="summary">
 <meta name="theme-color" content="#0d1016">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TrendScope">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <link rel="stylesheet" href="style.css?v=3">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"TrendScope","inLanguage":"ja","description":"世界の面白ニュースを日本語で。見出しの釣り度を冷静に判定。"}</script>
@@ -18,6 +22,7 @@
 <body>
 <header><div class="wrap hrow">
   <a class="logo" href="/">🌍 <span>TrendScope</span></a>
+  <button class="ib" id="instBtn" hidden>📲 アプリにする</button>
   <nav class="views" id="views" aria-label="画面の切り替え">
     <button class="vbtn on" data-v="news">📰 ニュース</button>
     <button class="vbtn" data-v="map">🗺 世界マップ</button>
@@ -64,6 +69,7 @@
 <div class="toast" id="toast"></div>
 <div id="tsBox"></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="share.js?v=3"></script>
 <script src="app.js?v=3"></script>
 </body>
 </html>

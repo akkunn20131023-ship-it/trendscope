@@ -1,0 +1,21 @@
+{
+  "name": "TrendScope — 盛らない世界ニュース",
+  "short_name": "TrendScope",
+  "description": "世界の面白ニュースを日本語で。見出しの釣り度を冷静に判定。",
+  "lang": "ja",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0d1016",
+  "theme_color": "#0d1016",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ],
+  "shortcuts": [
+    { "name": "世界マップ", "url": "/#map" },
+    { "name": "ダイジェスト", "url": "/#digest" }
+  ]
+}

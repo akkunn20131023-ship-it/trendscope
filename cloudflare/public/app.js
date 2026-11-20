@@ -42,13 +42,36 @@ function render(){
     return `<article class="card"><div class="cb">
       <div class="meta"><span class="src">${esc(i.source)}</span>${e&&e!=="中立"?`<span class="emo" title="見出しの感情（機械的な目安）">${EMOJI[e]||""}</span>`:""}<span>${ago(i.time)}</span><span class="badge b${b.stars}" title="${esc(b.label||"")}">煽り ${stars(b.stars)}</span></div>
       <h3 class="tja">${esc(i.title_ja||i.title)}</h3>${i.title_ja&&i.title_ja!==i.title?`<p class="ten">${esc(i.title)}</p>`:""}
-      <div class="acts"><a class="ib" href="${esc(i.url)}" target="_blank" rel="noopener nofollow">元記事 ↗</a>${i.disc&&i.disc!==i.url?`<a class="ib" href="${esc(i.disc)}" target="_blank" rel="noopener nofollow">議論 ↗</a>`:""}<button class="ib" data-chk="${esc(i.title)}">🧊 判定</button></div>
+      <div class="acts"><a class="ib" href="${esc(i.url)}" target="_blank" rel="noopener nofollow">元記事 ↗</a>${i.disc&&i.disc!==i.url?`<a class="ib" href="${esc(i.disc)}" target="_blank" rel="noopener nofollow">議論 ↗</a>`:""}<button class="ib" data-chk="${esc(i.title)}">🧊 判定</button><button class="ib" data-sum="${esc(i.id)}">📝 要約</button><button class="ib" data-share="${esc(i.id)}">🔗 共有</button></div>
+      <div class="sum" id="sum-${esc(i.id)}" hidden></div>
     </div></article>`; }).join("")||'<div class="empty">該当するニュースがありません</div>';
 }
 $("#tabs").onclick=e=>{ const t=e.target.closest(".tab"); if(t){ S.tab=t.dataset.k; render(); } };
 $("#q").oninput=e=>{ S.q=e.target.value.trim(); render(); };
 $("#hideBait").onchange=e=>{ S.hide=e.target.checked; render(); };
-$("#grid").onclick=e=>{ const b=e.target.closest("[data-chk]"); if(b){ $("#inp").value=b.dataset.chk; scrollTo({top:0,behavior:"smooth"}); check(); } };
+$("#grid").onclick=async e=>{
+  const b=e.target.closest("[data-chk]"); if(b){ $("#inp").value=b.dataset.chk; scrollTo({top:0,behavior:"smooth"}); check(); return; }
+  const sh=e.target.closest("[data-share]");
+  if(sh){ const it=D.news.find(i=>i.id===sh.dataset.share); if(it&&window.TSshare) TSshare(location.origin+"/a/"+it.id, it.title_ja||it.title); return; }
+  const sm=e.target.closest("[data-sum]");
+  if(sm&&window.TSsummary){
+    const box=document.getElementById("sum-"+sm.dataset.sum); if(!box) return;
+    if(!box.hidden&&box.dataset.done){ box.hidden=true; return; }
+    box.hidden=false; if(box.dataset.done) return;
+    box.innerHTML='<p class="mtag">⏳ AIが記事を読んで要約しています…（10秒ほど）</p>'; sm.disabled=true;
+    try{ box.innerHTML=TSsumHTML(await TSsummary(sm.dataset.sum)); box.dataset.done="1"; }
+    catch(err){ box.innerHTML=`<p class="mtag">⚠ ${esc(err.message)}</p>`; }
+    sm.disabled=false;
+  }
+};
+/* ---------- アプリとして追加（PWA） ---------- */
+let instEvt=null;
+addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); instEvt=e; $("#instBtn").hidden=false; });
+$("#instBtn").onclick=async()=>{ if(!instEvt) return; instEvt.prompt(); await instEvt.userChoice.catch(()=>{}); instEvt=null; $("#instBtn").hidden=true; };
+addEventListener("appinstalled",()=>{ $("#instBtn").hidden=true; toast("ホーム画面に追加しました"); });
+if(/iPhone|iPad/.test(navigator.userAgent)&&!navigator.standalone&&!localStorage.getItem("ts_ios_hint")){
+  setTimeout(()=>{ toast("📲 共有ボタン→「ホーム画面に追加」でアプリのように使えます"); try{localStorage.setItem("ts_ios_hint","1")}catch{} },4000);
+}
 
 /* ---------- 釣り判定（ブラウザ内で完結） ---------- */
 let RX=[], LABELS={}, CAPS_OK=new Set();

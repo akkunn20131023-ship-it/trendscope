@@ -221,3 +221,16 @@ h1{font-size:16px;margin:0 0 4px}
   .toast{bottom:calc(76px + env(safe-area-inset-bottom))}
   .foot{padding:16px 12px 24px}
 }
+
+/* ===== 要約・共有ページ・アプリ化 ===== */
+.sum{margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(91,157,255,.08);border:1px solid rgba(91,157,255,.25)}
+.sum h2{font-size:14px;margin:4px 0 6px}
+.sum ul{margin:0 0 6px;padding-left:20px;line-height:1.7;font-size:14.5px}
+.sum p{margin:4px 0;font-size:14px;line-height:1.7}
+.card .sum[hidden]{display:none}
+.share{max-width:760px;padding-top:18px;padding-bottom:40px}
+.share h1.tja{font-size:21px;line-height:1.5;margin:8px 0}
+.share .card{margin-bottom:14px}
+.share .sum{margin:14px 0}
+#instBtn{margin-left:6px;white-space:nowrap}
+#instBtn[hidden]{display:none}

@@ -1,6 +1,7 @@
 // TrendScope（PC または GitHub Actions）からニュースデータを受け取り KV に保存（合言葉が必要）
 import { json, limited, sameText } from "../../lib/guard.js";
 import { translatePayload } from "../../lib/translate.js";
+import { updateArchive } from "../../lib/archive.js";
 
 const ALLOW = ["meta", "news", "digest", "geo", "conflicts", "emotions", "patterns", "markets", "holidays", "launches", "wiki", "compare"];
 
@@ -19,5 +20,6 @@ export async function onRequestPost({ request, env }) {
   try { tr = await translatePayload(env, clean); } catch (e) { tr = { enabled: !!env.AI, error: String(e).slice(0, 200) }; }
   clean.meta.ai_translate = tr.enabled;
   await env.TS.put("latest", JSON.stringify(clean));
-  return json({ stored: true, items: clean.news.length, at: Date.now(), translate: tr });
+  let archived = 0; try { archived = await updateArchive(env, clean.news); } catch {}
+  return json({ stored: true, items: clean.news.length, at: Date.now(), translate: tr, archived });
 }
