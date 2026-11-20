@@ -720,7 +720,7 @@ def conflicts_payload():
         rel = [it for it in items if set(it.get("geo") or []) & set(codes) and CONFLICT_WORDS.search(it["title"] + " " + it.get("desc", "")[:400])]
         out.append({**{k: v for k, v in c.items() if k != "query"}, "level_ja": geo.LEVEL_JA[c["level"]],
                     "news_count": len(rel),
-                    "news": [{k: it.get(k) for k in ("title_ja", "url", "source")} for it in rel[:5]]})
+                    "news": [{k: it.get(k) for k in ("title_ja", "title", "url", "source")} for it in rel[:5]]})
     return {"conflicts": out, "note": "2026年11月時点の編集リストです。最新状況は各地域の「最新報道」で確認してください。"}
 
 

@@ -97,7 +97,7 @@ def build_public_payload(news, digest_fn, geo_fn, conflicts_fn, emotions_fn, ext
                        "source": i.get("source"), "cat": i.get("cat"), "time": i.get("time")} for i in c["items"]]
     cf = conflicts_fn()
     for c in cf.get("conflicts", []):
-        c["news"] = [{"title_ja": n.get("title_ja", "") if tr else "", "url": n.get("url"), "source": n.get("source")} for n in c.get("news", [])]
+        c["news"] = [{"title_ja": n.get("title_ja", "") if tr else "", "title": n.get("title", ""), "url": n.get("url"), "source": n.get("source")} for n in c.get("news", [])]
     em = emotions_fn()
     payload = {
         "meta": {"updated": news.get("updated"), "built": time.time(), "count": len(items), "translate": tr,

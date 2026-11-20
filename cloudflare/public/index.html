@@ -12,7 +12,7 @@
 <meta name="theme-color" content="#0d1016">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="style.css?v=3">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"TrendScope","inLanguage":"ja","description":"世界の面白ニュースを日本語で。見出しの釣り度を冷静に判定。"}</script>
 </head>
 <body>
@@ -51,7 +51,7 @@
 <section class="view wrap" id="view-compare"><div class="dgrid" id="cmp"></div></section>
 
 <footer class="wrap foot">
-  <p>TrendScope は、海外ニュースサイト・掲示板・公的機関などが公開している情報から<b>見出しとリンク</b>を自動で集め、機械翻訳と自動分析を加えて表示しています。記事の内容・正確性は各リンク先でご確認ください。見出しの日本語訳は機械翻訳です。</p>
+  <p>TrendScope は、海外ニュースサイト・掲示板・公的機関などが公開している情報から<b>見出しとリンク</b>を自動で集め、機械翻訳と自動分析を加えて表示しています。記事の内容・正確性は各リンク先でご確認ください。見出しの日本語訳は機械翻訳（Cloudflare Workers AI）です。</p>
   <p>データ: Hacker News / Reddit / ScienceDaily / BBC / Good News Network / Googleニュース / USGS / Open-Meteo / wheretheiss.at / adsb.lol / Launch Library 2 / Wikipedia (CC BY-SA) / 世界銀行 ・ 地図 &copy; Esri, OpenStreetMap</p>
   <p class="mtag" id="metaInfo"></p>
 </footer>
@@ -64,6 +64,6 @@
 <div class="toast" id="toast"></div>
 <div id="tsBox"></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>

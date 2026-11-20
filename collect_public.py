@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 GitHub Actions 用：ニュースを集めて公開版（Cloudflare Pages）へ送る
-環境変数: PUBLIC_SITE_URL（https://〜.pages.dev） / UPLOAD_SECRET / PUBLIC_TRANSLATE（1=翻訳を公開, 0=原文のみ）
+環境変数: PUBLIC_SITE_URL（https://〜.pages.dev） / UPLOAD_SECRET / PUBLIC_TRANSLATE（1=PC側の翻訳を送る。既定0＝公開サイト側のWorkers AIで翻訳）
 """
 import os
 import sys
@@ -21,7 +21,7 @@ def main():
         return 1
     ft.H.update(http_get=server.http_get, get_json=server.get_json, translate_many=server.translate_many,
                 log=server.log, translate_one=server.translate_one, translate_to=server.translate_to)
-    tr = os.environ.get("PUBLIC_TRANSLATE", "1") != "0"
+    tr = os.environ.get("PUBLIC_TRANSLATE", "0") == "1"
     orig = ft.settings
     ft.settings = lambda: {**orig(), "public_translate": tr}
     t0 = time.time()
