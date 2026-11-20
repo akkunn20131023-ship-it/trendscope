@@ -6,7 +6,9 @@ const BATCH = 15;
 const CACHE_MAX = 3000;
 
 const hasJa = s => /[぀-ヿ一-鿿]/.test(s || "");
-const clean = s => String(s || "").replace(/^\s*\d+\s*[.)：:]\s*/, "").replace(/^["「『]|["」』]$/g, "").trim();
+const clean = s => { let t = String(s || "").replace(/^\s*\d+\s*[.)：:]\s*/, "").trim();
+  if (/^「[^「」]*」$|^『[^『』]*』$|^"[^"]*"$/.test(t)) t = t.slice(1, -1).trim(); // 全体を囲む括弧だけ外す
+  return t; };
 
 async function llmBatch(ai, titles) {
   const prompt = "次の英語ニュース見出しを、自然で簡潔な日本語の見出しに翻訳してください。" +
