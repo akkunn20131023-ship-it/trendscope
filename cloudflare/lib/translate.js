@@ -1,5 +1,5 @@
-// 見出しの日本語訳（Cloudflare Workers AI・無料枠内）。訳した結果は KV "trcache" に保存して再利用する。
-const LLM = "@cf/google/gemma-3-12b-it";
+// 見出しの日本語訳（Cloudflare Workers AI・無料枠内）。訳した結果は KV "trcache2" に保存して再利用する。
+import { chat } from "./ai.js";
 const MT = "@cf/meta/m2m100-1.2b";
 const MAX_NEW = 90;      // 1回のアップロードで新しく訳す最大件数（残りは次回）
 const BATCH = 15;
@@ -13,9 +13,9 @@ async function llmBatch(ai, titles) {
     "誇張や補足は加えず、固有名詞は一般的なカタカナ表記にしてください。" +
     "番号付きで1行ずつ、訳文だけを出力してください。\n\n" +
     titles.map((t, i) => `${i + 1}. ${t}`).join("\n");
-  const r = await ai.run(LLM, { messages: [{ role: "user", content: prompt }], max_tokens: 2048, temperature: 0.2 });
+  const r = await chat(ai, prompt, { max_tokens: 2048 });
   const out = {};
-  String(r?.response || "").split("\n").forEach(line => {
+  r.text.split("\n").forEach(line => {
     const m = line.match(/^\s*(\d+)\s*[.)：:]\s*(.+)$/);
     if (m) { const k = +m[1] - 1; const v = clean(m[2]); if (titles[k] && hasJa(v) && v.length < 300) out[titles[k]] = v; }
   });
@@ -40,7 +40,7 @@ export async function translatePayload(env, payload) {
     }
   })(payload);
   let cache = {};
-  try { cache = JSON.parse(await env.TS.get("trcache") || "{}"); } catch {}
+  try { cache = JSON.parse(await env.TS.get("trcache2") || "{}"); } catch {}
   const need = [...new Set(nodes.filter(n => !n.title_ja && n.title && !hasJa(n.title)).map(n => n.title))];
   const todo = need.filter(t => !cache[t]).slice(0, MAX_NEW);
   let made = 0;
@@ -62,7 +62,7 @@ export async function translatePayload(env, payload) {
     const keep = {}; need.forEach(t => { if (cache[t]) keep[t] = cache[t]; });
     const rest = Object.entries(cache).filter(([k]) => !(k in keep));
     const merged = Object.fromEntries([...rest.slice(-Math.max(0, CACHE_MAX - Object.keys(keep).length)), ...Object.entries(keep)]);
-    await env.TS.put("trcache", JSON.stringify(merged));
+    await env.TS.put("trcache2", JSON.stringify(merged));
   }
   return { enabled: true, new: made, filled, pending: need.filter(t => !cache[t]).length };
 }

@@ -2,7 +2,7 @@
 import { json, limited, verifyCookie } from "../../lib/guard.js";
 import { getItem, getSummary, validId } from "../../lib/archive.js";
 
-const MODEL = "@cf/google/gemma-3-12b-it";
+import { chat } from "../../lib/ai.js";
 const UA = "TrendScope-public/1.0 (+https://github.com/akkunn20131023-ship-it/trendscope)";
 
 function extractText(html) {
@@ -37,13 +37,13 @@ export async function onRequestGet({ request, env }) {
   if (text.length < 200) return json({ error: "元記事の本文を取得できなかったため要約できません。元記事でご確認ください。" }, 422);
   const prompt = `以下はニュース記事「${item.title}」の本文の抜粋です。本文に書かれている内容だけを使って、日本語で答えてください。推測や誇張は入れないでください。\n` +
     `出力形式（この形式以外は書かない）：\n要約:\n- （1行目・60字以内）\n- （2行目・60字以内）\n- （3行目・60字以内）\nなぜ話題:\n（なぜ注目されているのかを1〜2文、本文から分かる範囲で）\n\n本文:\n${text}`;
-  let out = "";
-  try { const r = await env.AI.run(MODEL, { messages: [{ role: "user", content: prompt }], max_tokens: 600, temperature: 0.2 }); out = String(r?.response || ""); }
+  let out = "", model = "";
+  try { const r = await chat(env.AI, prompt, { max_tokens: 700 }); out = r.text; model = r.model; }
   catch (e) { return json({ error: "AIが混み合っています。少し待ってからお試しください。", detail: String(e && e.message || e).slice(0, 300) }, 503); }
   const lines = (out.split(/なぜ話題[:：]/)[0].match(/^\s*[-・*]\s*(.+)$/gm) || []).map((l) => l.replace(/^\s*[-・*]\s*/, "").trim()).filter(Boolean).slice(0, 3);
   const why = ((out.split(/なぜ話題[:：]/)[1] || "").trim().split("\n").filter((l) => l.trim()).join(" ")).slice(0, 300);
   if (!lines.length) return json({ error: "要約を作れませんでした。" }, 502);
-  const res = { id, lines, why, at: Date.now(), note: "AIによる自動要約です。正確な内容は元記事でご確認ください。" };
+  const res = { id, lines, why, model: model.split("/").pop(), at: Date.now(), note: "AIによる自動要約です。正確な内容は元記事でご確認ください。" };
   try { await env.TS.put("sum:" + id, JSON.stringify(res), { expirationTtl: 30 * 86400 }); } catch {}
   return json(res);
 }
