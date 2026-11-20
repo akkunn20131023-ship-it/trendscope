@@ -87,13 +87,24 @@ function check(){
 $("#go").onclick=check; $("#inp").onkeydown=e=>{ if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)) check(); };
 
 /* ---------- 画面切り替え ---------- */
-function showView(v){
-  curView=v; document.querySelectorAll(".vbtn").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
+function showView(v, fromHash){
+  if(!["news","map","digest","compare"].includes(v)) v="news";
+  const changed=curView!==v;
+  curView=v; document.querySelectorAll(".vbtn,#bnav button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
+  document.body.className="v-"+v;
+  if(changed) scrollTo(0,0);
+  $("#side").classList.remove("show"); $("#layers").classList.remove("open");
   document.querySelectorAll(".view").forEach(el=>el.classList.toggle("on",el.id==="view-"+v));
   if(v==="map") initMap(); if(v==="digest"&&D) renderDigest(); if(v==="compare"&&D) renderCompare();
-  history.replaceState(null,"",v==="news"?location.pathname:`#${v}`);
+  if(!fromHash) history.replaceState(null,"",v==="news"?location.pathname:`#${v}`);
 }
 $("#views").onclick=e=>{ const b=e.target.closest(".vbtn"); if(b) showView(b.dataset.v); };
+$("#bnav").onclick=e=>{ const b=e.target.closest("button"); if(b) showView(b.dataset.v); };
+addEventListener("hashchange",()=>showView(location.hash.slice(1)||"news", true));
+$("#layBtn").onclick=()=>{ $("#side").classList.remove("show"); $("#layers").classList.toggle("open"); };
+// ヘッダーの高さをCSSに渡す（スマホの地図を全画面にするため）
+const setHH=()=>document.documentElement.style.setProperty("--hh", document.querySelector("header").offsetHeight+"px");
+addEventListener("resize",()=>{ setHH(); if(M) M.invalidateSize(); }); setHH();
 
 /* ---------- ダイジェスト ---------- */
 const spark=(arr,w=80,h=20)=>{ if(!arr||arr.length<2) return ""; const mn=Math.min(...arr),mx=Math.max(...arr),r=mx-mn||1; return `<svg width="${w}" height="${h}" class="spk"><polyline points="${arr.map((v,i)=>`${(i/(arr.length-1)*w).toFixed(1)},${(h-(v-mn)/r*h).toFixed(1)}`).join(" ")}" fill="none" stroke="${arr[arr.length-1]>=arr[0]?"#46d39a":"#ff5d6c"}" stroke-width="1.6"/></svg>`; };
@@ -129,7 +140,7 @@ const LAYERS=[["conflicts","#ff5d6c","紛争・対立地域",true],["news","#5b9
   ["planes","#ffd34d","飛行機（地図の中心付近）",false],["launch","#ffab40","ロケット打ち上げ予定",false],["night","#3949ab","昼と夜の境界線",true]];
 const LVC={war:"#ff3b4f",high:"#ff6b3d",mid:"#ffb547",tension:"#c9a6ff"};
 const CITIES=[["東京",35.68,139.69],["ソウル",37.57,126.98],["北京",39.9,116.4],["シンガポール",1.35,103.82],["ニューデリー",28.61,77.21],["ドバイ",25.2,55.27],["モスクワ",55.75,37.62],["キーウ",50.45,30.52],["カイロ",30.04,31.24],["ナイロビ",-1.29,36.82],["パリ",48.86,2.35],["ロンドン",51.51,-0.13],["ニューヨーク",40.71,-74.0],["ロサンゼルス",34.05,-118.24],["メキシコシティ",19.43,-99.13],["サンパウロ",-23.55,-46.63],["シドニー",-33.87,151.21],["ヨハネスブルグ",-26.2,28.05]];
-const side=html=>{ $("#sideBody").innerHTML=html; $("#side").classList.add("show"); };
+const side=html=>{ $("#sideBody").innerHTML=html; $("#layers").classList.remove("open"); $("#side").classList.add("show"); $("#side").scrollTop=0; };
 $("#sideX").onclick=()=>$("#side").classList.remove("show");
 $("#fold").onclick=()=>$("#layers").classList.toggle("folded");
 function initMap(){
@@ -143,7 +154,7 @@ function initMap(){
   LAYERS.forEach(([k])=>LY[k]=L.layerGroup());
   document.querySelectorAll("#layerList input").forEach(cb=>{ cb.onchange=()=>{ toggle(cb.dataset.layer,cb.checked); saved[cb.dataset.layer]=cb.checked; LS.set("pubLayers",saved); }; toggle(cb.dataset.layer,cb.checked); });
   M.on("moveend",()=>{ if(M.hasLayer(LY.planes)) loadPlanes(); });
-  if(innerWidth<720) $("#layers").classList.add("folded");
+  if(innerWidth<720) setTimeout(()=>M.invalidateSize(),200);
 }
 const timers={};
 function toggle(k,on){
@@ -217,5 +228,6 @@ async function loadPlanes(){
 
 /* ---------- 起動 ---------- */
 load(); setInterval(()=>{ if(!document.hidden) load(); }, 10*60*1000);
-const h0=location.hash.slice(1); if(["map","digest","compare"].includes(h0)) showView(h0);
+document.body.className="v-news";
+const h0=location.hash.slice(1); if(["map","digest","compare"].includes(h0)) showView(h0, true);
 })();

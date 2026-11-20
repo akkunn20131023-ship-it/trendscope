@@ -164,3 +164,60 @@ h1{font-size:16px;margin:0 0 4px}
 .wx{background:rgba(10,14,20,.78);border:1px solid #2b3a52;border-radius:8px;padding:1px 6px;text-align:center;line-height:1.25;white-space:nowrap}.wx b{font-size:12px}.wx span{display:block;font-size:10px;color:#97a3b8}
 #layers.folded #layerList,#layers.folded .note{display:none}
 #tsBox{position:fixed;bottom:16px;right:16px;z-index:1500}
+
+/* ===== スマホ向けレイアウト ===== */
+#bnav,#layBtn{display:none}
+@media (max-width:720px){
+  html{-webkit-text-size-adjust:100%}
+  body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+  .wrap{padding:0 12px}
+  header .hrow{padding:9px 0;gap:8px}
+  header .views{display:none}
+  .logo{font-size:18px}
+  .status{font-size:11px;margin-left:auto;text-align:right;max-width:46%}
+  #bnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:1200;background:rgba(13,16,22,.97);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+  #bnav button{flex:1;background:none;border:0;color:var(--sub);font-size:11px;padding:7px 0 8px;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:56px}
+  #bnav button span{font-size:21px;line-height:1}
+  #bnav button.on{color:var(--acc);font-weight:700}
+  .checker{margin:10px 0 8px;padding:12px}
+  .checker h1{font-size:15px}
+  .checker .hint{display:none}
+  .crow{flex-direction:row;gap:8px}
+  .crow textarea{min-height:46px;height:46px;font-size:15px;padding:10px}
+  .crow textarea:focus{height:110px}
+  .crow .btn{min-width:76px;padding:0 10px}
+  .rgrid{grid-template-columns:1fr}
+  .meter{width:70px;height:70px;font-size:20px}
+  .tabs{position:sticky;top:var(--hh,52px);z-index:15;background:var(--bg);margin:0 -12px;padding:8px 12px;scroll-snap-type:x proximity}
+  .tab{scroll-snap-align:start;padding:7px 13px;font-size:14px}
+  .tools{gap:8px;padding:6px 0}
+  .tools input[type=search]{width:100%;font-size:15px;padding:10px 12px}
+  .grid{grid-template-columns:1fr;gap:10px;padding:8px 0 20px}
+  .card .cb{padding:12px}
+  .tja{font-size:16px}
+  .acts{gap:8px;flex-wrap:wrap}
+  .acts .ib{padding:8px 12px;font-size:13.5px;min-height:38px;display:inline-flex;align-items:center}
+  .badge{font-size:11px}
+  /* 地図は全画面 */
+  body.v-map{overflow:hidden;padding-bottom:0}
+  body.v-map footer,body.v-map .toast{display:none}
+  body.v-map #map{position:fixed;top:var(--hh,52px);left:0;right:0;bottom:calc(57px + env(safe-area-inset-bottom));height:auto;width:auto}
+  body.v-map #layBtn{display:block;position:fixed;left:12px;top:calc(var(--hh,52px) + 12px);z-index:700;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+  #layers{display:none;position:fixed;top:auto!important;left:0!important;right:0;bottom:calc(57px + env(safe-area-inset-bottom));width:auto!important;max-height:58vh;overflow:auto;border-radius:18px 18px 0 0;padding:14px 16px 18px;z-index:800}
+  #layers.open{display:block}
+  #layers h4{font-size:15px}
+  #layers label{padding:9px 0;font-size:15px;border-bottom:1px solid var(--line)}
+  #layers label input{width:20px;height:20px}
+  #fold{display:none}
+  #side{position:fixed;top:auto!important;left:0!important;right:0!important;bottom:calc(57px + env(safe-area-inset-bottom));width:auto!important;max-height:62vh;border-radius:18px 18px 0 0;padding:16px;z-index:900}
+  #side .x{font-size:24px;top:6px;right:12px}
+  #side::before{content:"";display:block;width:40px;height:4px;border-radius:2px;background:var(--line);margin:-6px auto 10px}
+  .leaflet-control-zoom a{width:38px!important;height:38px!important;line-height:38px!important;font-size:20px!important}
+  /* ダイジェスト・温度差 */
+  .dgrid{grid-template-columns:1fr;gap:10px;padding:10px 0 20px}
+  .dcard{padding:13px 14px}
+  .dcard h3{font-size:15px}
+  .bar .l{width:96px}
+  .toast{bottom:calc(76px + env(safe-area-inset-bottom))}
+  .foot{padding:16px 12px 24px}
+}

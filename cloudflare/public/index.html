@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>TrendScope — 世界の面白ニュースと釣りタイトル冷静判定</title>
 <meta name="description" content="世界の面白ニュース・流行を日本語でまとめて表示。見出しの「釣り度」を冷静に判定し、紛争・地震・天気・飛行機などを世界地図で一覧できる無料サイトです。">
 <meta property="og:type" content="website">
@@ -42,6 +42,7 @@
 
 <section class="view" id="view-map">
   <div id="map"></div>
+  <button class="btn" id="layBtn" aria-label="表示レイヤー">🗂 レイヤー</button>
   <div class="mpanel" id="layers"><h4>🗺 表示レイヤー <button class="ib" id="fold">⇕</button></h4><div id="layerList"></div><div class="note" id="mnote">紛争地域や地震などを重ねて表示します。</div></div>
   <div class="mpanel" id="side"><button class="x" id="sideX">×</button><div id="sideBody"></div></div>
 </section>
@@ -54,6 +55,12 @@
   <p>データ: Hacker News / Reddit / ScienceDaily / BBC / Good News Network / Googleニュース / USGS / Open-Meteo / wheretheiss.at / adsb.lol / Launch Library 2 / Wikipedia (CC BY-SA) / 世界銀行 ・ 地図 &copy; Esri, OpenStreetMap</p>
   <p class="mtag" id="metaInfo"></p>
 </footer>
+<nav id="bnav" aria-label="画面の切り替え">
+  <button data-v="news" class="on"><span>📰</span>ニュース</button>
+  <button data-v="map"><span>🗺</span>地図</button>
+  <button data-v="digest"><span>📋</span>ダイジェスト</button>
+  <button data-v="compare"><span>🗾</span>温度差</button>
+</nav>
 <div class="toast" id="toast"></div>
 <div id="tsBox"></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
