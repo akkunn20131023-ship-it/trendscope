@@ -1,0 +1,26 @@
+/* ---- 第4弾：メニュー・ツアー等 ---- */
+#menuPop{position:fixed;z-index:1300;display:none;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px;min-width:300px;box-shadow:0 14px 40px rgba(0,0,0,.45)}
+#menuPop.show{display:block}
+#menuPop button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:0;border-radius:10px;padding:9px 10px;font-size:14px;color:var(--text)}
+#menuPop button:hover{background:var(--panel2)}
+#menuPop button span{width:22px;text-align:center}
+.status{gap:8px}
+#upd.compact{font-size:11.5px;max-width:110px;line-height:1.3}
+.logbox{background:#06080c;color:#b9c4d6;border:1px solid var(--line);border-radius:10px;padding:10px;max-height:60vh;overflow:auto;font-size:12px;white-space:pre-wrap}
+.help{border-bottom:1px solid var(--line);padding:8px 0}.help p{margin:4px 0 0;font-size:13.5px;color:var(--sub)}
+#tourOv{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1400;pointer-events:none}
+.tourHi{position:relative;z-index:1401!important;box-shadow:0 0 0 4px var(--acc),0 0 0 9999px rgba(0,0,0,.45);border-radius:12px}
+#tourBox{position:fixed;z-index:1402;width:320px;background:var(--panel);border:1px solid var(--acc);border-radius:14px;padding:12px 14px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+#tourBox p{margin:6px 0;font-size:14px}
+@media(max-width:720px){
+  header .hrow{flex-wrap:wrap;gap:8px}
+  .views{order:3;width:100%;overflow-x:auto;margin-left:0;scrollbar-width:none}
+  .status{margin-left:auto}
+  #menuPop{left:8px;right:8px!important;min-width:0}
+}
+.acts{position:relative;flex-wrap:wrap}
+.moreT{margin-left:auto}
+.moreBox{display:none;position:absolute;right:0;bottom:calc(100% + 6px);z-index:50;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px;flex-direction:column;gap:4px;min-width:170px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.moreBox.show{display:flex}
+.moreBox .ib{text-align:left;width:100%;margin:0}
+.acts .sp{margin-left:0}

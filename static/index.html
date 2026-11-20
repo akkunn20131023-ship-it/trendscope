@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TrendScope — 世界の面白ニュース ＆ 釣りタイトル冷静判定</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<style>
+:root{
+  --bg:#0d1016;--panel:#151a23;--panel2:#1b2230;--line:#263043;--text:#e7ebf2;--sub:#97a3b8;--dim:#6b7689;
+  --acc:#5b9dff;--acc2:#7ee0c3;--warn:#ffb547;--bad:#ff5d6c;--good:#46d39a;--r:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI","Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,sans-serif;font-size:15px;line-height:1.6}
+a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
+button{font:inherit;color:inherit;cursor:pointer}
+.wrap{max-width:1240px;margin:0 auto;padding:0 18px}
+header{position:sticky;top:0;z-index:20;background:rgba(13,16,22,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.hrow{display:flex;align-items:center;gap:14px;padding:12px 0}
+.logo{font-weight:800;font-size:20px;letter-spacing:.3px;white-space:nowrap}
+.logo span{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.status{margin-left:auto;display:flex;align-items:center;gap:10px;color:var(--sub);font-size:13px}
+.dots{display:flex;gap:4px;cursor:help}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--dim)}
+.dot.ok{background:var(--good)}.dot.ng{background:var(--bad)}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:7px 14px;transition:.15s}
+.btn:hover{border-color:var(--acc)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#04101f;font-weight:700}
+.btn.pri:hover{filter:brightness(1.1)}
+.btn:disabled{opacity:.5;cursor:wait}
+/* checker */
+.checker{margin:20px 0 10px;background:linear-gradient(135deg,#17202e,#141923);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.checker h2{margin:0 0 4px;font-size:16px}
+.checker p.hint{margin:0 0 10px;color:var(--sub);font-size:13px}
+.crow{display:flex;gap:10px;align-items:stretch}
+textarea{flex:1;resize:vertical;min-height:52px;max-height:260px;background:#0f141c;border:1px solid var(--line);border-radius:10px;color:var(--text);padding:10px 12px;font:inherit}
+textarea:focus{outline:none;border-color:var(--acc)}
+.samples{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:12px;background:#0f141c;border:1px solid var(--line);border-radius:999px;padding:3px 10px;color:var(--sub)}
+.chip:hover{color:var(--text);border-color:var(--acc)}
+.result{margin-top:14px;display:none;border-top:1px dashed var(--line);padding-top:14px}
+.result.show{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+.rtop{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.meter{width:86px;height:86px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:24px;position:relative;flex:none}
+.meter small{display:block;font-size:10px;font-weight:600;color:var(--sub);text-align:center;margin-top:-4px}
+.stars{font-size:22px;letter-spacing:2px}
+.verdict{font-size:15px}
+.rgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.box{background:#0f141c;border:1px solid var(--line);border-radius:10px;padding:12px}
+.box h3{margin:0 0 6px;font-size:12px;color:var(--sub);font-weight:600;letter-spacing:.5px}
+.box ul{margin:0;padding-left:18px}.box li{margin:2px 0}
+.hl{font-size:16px;line-height:1.8}
+mark{background:rgba(255,93,108,.22);color:#ffd0d5;border-bottom:2px solid var(--bad);border-radius:3px;padding:0 2px}
+mark[data-l]:hover::after{content:attr(data-l);position:absolute;transform:translate(-40%,-130%);background:#000;color:#fff;font-size:11px;padding:2px 6px;border-radius:6px;white-space:nowrap}
+.calm{font-size:16px;color:var(--acc2)}
+.pageinfo{font-size:12px;color:var(--sub);margin-top:6px;word-break:break-all}
+.full{grid-column:1/-1}
+/* tabs & tools */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:12px 0 2px;scrollbar-width:none}
+.tab{white-space:nowrap;background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 14px;color:var(--sub)}
+.tab .n{font-size:11px;opacity:.7;margin-left:4px}
+.tab.on{background:var(--text);color:#0d1016;border-color:var(--text);font-weight:700}
+.tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 0 4px;color:var(--sub);font-size:13px}
+.tools input[type=search],.tools select{background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:7px 10px;font:inherit;font-size:13px}
+.tools input[type=search]{width:240px}
+.tools label{display:flex;gap:5px;align-items:center;cursor:pointer;user-select:none}
+/* cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px;padding:12px 0 60px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;transition:.15s}
+.card:hover{border-color:#36445e;transform:translateY(-2px)}
+.thumb{height:160px;background:#0f141c center/cover no-repeat;border-bottom:1px solid var(--line)}
+.cb{padding:12px 14px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.meta{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--dim);flex-wrap:wrap}
+.src{color:var(--sub);background:var(--panel2);border-radius:6px;padding:1px 7px}
+.badge{margin-left:auto;font-size:11px;font-weight:700;border-radius:999px;padding:2px 9px;cursor:pointer;border:1px solid transparent}
+.b1{background:rgba(70,211,154,.13);color:var(--good)}
+.b2{background:rgba(126,224,195,.1);color:var(--acc2)}
+.b3{background:rgba(255,181,71,.14);color:var(--warn)}
+.b4,.b5{background:rgba(255,93,108,.16);color:var(--bad)}
+.tja{font-size:16px;font-weight:700;line-height:1.5;margin:0}
+.ten{font-size:12.5px;color:var(--dim);margin:0;line-height:1.45}
+.desc{font-size:13.5px;color:var(--sub);margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.acts{display:flex;gap:6px;align-items:center;margin-top:auto;padding-top:6px;font-size:13px}
+.acts .sp{margin-left:auto}
+.ib{background:transparent;border:1px solid var(--line);border-radius:8px;padding:4px 10px;color:var(--sub);font-size:12.5px}
+.ib:hover{color:var(--text);border-color:var(--acc)}
+.fav.on{color:#ffd34d;border-color:#6a5a1e;background:rgba(255,211,77,.08)}
+.reasons{font-size:12px;color:var(--warn);background:rgba(255,181,71,.07);border-radius:8px;padding:6px 8px;display:none}
+.reasons.show{display:block}
+.empty,.loading{grid-column:1/-1;text-align:center;color:var(--sub);padding:60px 0}
+.spin{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:sp 0.8s linear infinite;margin:0 auto 12px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#000;border:1px solid var(--line);border-radius:10px;padding:8px 16px;font-size:13px;opacity:0;transition:.2s;pointer-events:none;z-index:50}
+.toast.show{opacity:1}
+
+/* views */
+.views{display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:3px;margin-left:10px}
+.vbtn{background:transparent;border:0;border-radius:9px;padding:6px 14px;color:var(--sub);font-weight:600;white-space:nowrap}
+.vbtn.on{background:var(--acc);color:#04101f}
+.view{display:none}.view.on{display:block}
+/* summary */
+.sumbox{display:none;font-size:13.5px;background:rgba(91,157,255,.08);border:1px solid rgba(91,157,255,.25);border-radius:10px;padding:8px 10px}
+.sumbox.show{display:block}
+.sumbox ol{margin:4px 0 0;padding-left:20px}.sumbox li{margin:3px 0}
+.sumbox .s{font-size:11px;color:var(--dim);margin-top:4px}
+/* map */
+#view-map{position:relative}
+#map{height:calc(100vh - 62px);width:100%;background:#0a0d12}
+.mpanel{position:absolute;z-index:500;background:rgba(17,22,31,.94);border:1px solid var(--line);border-radius:12px;backdrop-filter:blur(8px);box-shadow:0 8px 30px rgba(0,0,0,.4)}
+#layers{top:12px;left:12px;padding:10px 12px;width:230px;font-size:13px}
+#layers h4{margin:0 0 6px;font-size:13px}
+#layers label{display:flex;align-items:center;gap:7px;padding:3px 0;cursor:pointer}
+#layers .c{margin-left:auto;font-size:11px;color:var(--dim)}
+#layers .note{font-size:11px;color:var(--dim);margin-top:6px;line-height:1.5}
+.lg{display:inline-block;width:10px;height:10px;border-radius:50%}
+#side{top:12px;right:12px;width:380px;max-height:calc(100% - 24px);overflow:auto;padding:14px;display:none}
+#side.show{display:block}
+#side h3{margin:0 0 4px;font-size:17px}
+#side .x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--sub);font-size:18px}
+#side .lv{display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:1px 9px;margin-right:6px}
+#side ul{padding-left:0;list-style:none;margin:8px 0}
+#side li{padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+#side li .m{font-size:11px;color:var(--dim)}
+.orig{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
+.orig span{font-size:11px;background:var(--panel2);border-radius:6px;padding:1px 7px;color:var(--sub)}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#151a23;color:var(--text);border:1px solid var(--line)}
+.leaflet-popup-content{margin:10px 12px;font-size:13px;line-height:1.5}
+.leaflet-container a.leaflet-popup-close-button{color:var(--sub)}
+.leaflet-control-attribution{background:rgba(0,0,0,.5)!important;color:#888!important}
+.leaflet-control-attribution a{color:#aaa!important}
+.osm-dark{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.5)}
+.plane{color:#ffd34d;filter:drop-shadow(0 0 2px #000)}
+.plane.g{color:#888}
+.train{width:9px;height:9px;border-radius:2px;background:#46d39a;border:1px solid #062;box-shadow:0 0 6px #46d39a}
+.train.jp{background:#ff8fd1;border-color:#603;box-shadow:0 0 6px #ff8fd1}
+.issi{font-size:22px;filter:drop-shadow(0 0 6px #5b9dff)}
+.pulse{border-radius:50%;animation:pl 1.8s ease-out infinite}
+@keyframes pl{0%{box-shadow:0 0 0 0 var(--pc)}100%{box-shadow:0 0 0 18px transparent}}
+.mtag{font-size:11px;color:var(--dim)}
+/* digest */
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px;padding:18px 0 60px}
+.dcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.dcard h3{margin:0 0 10px;font-size:15px}
+.dcard.wide{grid-column:1/-1}
+.bar{display:flex;align-items:center;gap:8px;font-size:13px;margin:5px 0}
+.bar .b{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.bar .l{width:120px;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dl{list-style:none;padding:0;margin:0}
+.dl li{padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.dl li:last-child{border:0}
+.dl .m{font-size:11.5px;color:var(--dim)}
+@media(max-width:720px){#side{width:auto;left:12px}#layers{width:190px}.views .vbtn{padding:6px 9px}}
+@media(max-width:720px){.rgrid{grid-template-columns:1fr}.crow{flex-direction:column}.tools input[type=search]{width:100%}.logo{font-size:17px}.status .txt{display:none}}
+</style>
+<link rel="stylesheet" href="/static/extra.css">
+<link rel="stylesheet" href="/static/extra2.css">
+<link rel="stylesheet" href="/static/extra3.css">
+<link rel="stylesheet" href="/static/extra4.css">
+</head>
+<body>
+<header><div class="wrap hrow">
+  <div class="logo">🌍 <span>TrendScope</span></div>
+  <nav class="views" id="views">
+    <button class="vbtn on" data-v="news">📰 ニュース</button>
+    <button class="vbtn" data-v="map">🗺 世界マップ</button>
+    <button class="vbtn" data-v="digest">📋 ダイジェスト</button>
+  </nav>
+  <div class="status"><span class="txt" id="upd">読み込み中…</span><div class="dots" id="dots"></div>
+    <button class="btn" id="refresh" title="キャッシュを無視して最新を取得">⟳ 更新</button></div>
+</div></header>
+
+<main class="wrap view on" id="view-news">
+  <section class="checker">
+    <h2>🧊 冷静判定チェッカー</h2>
+    <p class="hint">YouTubeの釣りタイトル・SNSの怪しい投稿・記事URLを貼り付け → 煽り度と「本当は何が書いてあるか」を判定します（Ctrl+Enterでも実行）</p>
+    <div class="crow">
+      <textarea id="inp" placeholder="例）【衝撃】99%の人が知らない〇〇の真実がヤバすぎる…！！  /  https://www.youtube.com/watch?v=…"></textarea>
+      <button class="btn pri" id="go" style="min-width:110px">判定する</button>
+    </div>
+    <div class="samples">
+      <span style="font-size:12px;color:var(--dim)">試す:</span>
+      <button class="chip" data-s="【衝撃】99%の人が知らない驚愕の真実がヤバすぎる…！！">日本語の釣り見出し</button>
+      <button class="chip" data-s="You WON'T BELIEVE what this guy found in his backyard!!! 😱🔥">英語の釣り見出し</button>
+      <button class="chip" data-s="【拡散希望】月100万円稼げる裏技を医者が暴露！削除される前に今すぐ見て">怪しいSNS投稿</button>
+      <button class="chip" data-s="Scientists identify new species of deep-sea octopus off Australia">普通の見出し</button>
+    </div>
+    <div class="result" id="res"></div>
+  </section>
+
+  <nav class="tabs" id="tabs"></nav>
+  <div class="tools">
+    <input type="search" id="q" placeholder="🔍 キーワードで絞り込み（日本語/英語）">
+    <select id="sort">
+      <option value="mix">おすすめ順</option><option value="new">新着順</option>
+      <option value="hot">人気順</option><option value="calm">冷静な見出し順</option>
+    </select>
+    <label><input type="checkbox" id="hideBait"> 釣り（★4以上）を隠す</label>
+    <label><input type="checkbox" id="showEn" checked> 英語原文を表示</label>
+    <span id="cnt" style="margin-left:auto"></span>
+  </div>
+  <section class="grid" id="grid"><div class="loading"><div class="spin"></div>世界中からネタを集めて日本語に翻訳しています…（初回は20〜40秒ほど）</div></section>
+</main>
+
+<section class="view" id="view-map">
+  <div id="map"></div>
+  <div class="mpanel" id="layers">
+    <h4>🗺 表示レイヤー</h4>
+    <label><input type="checkbox" data-layer="news" checked><span class="lg" style="background:#5b9dff"></span>ニュースの話題地<span class="c" id="c-news"></span></label>
+    <label><input type="checkbox" data-layer="flows"><span class="lg" style="background:#7ee0c3"></span>情報の発信元→話題地<span class="c" id="c-flows"></span></label>
+    <label><input type="checkbox" data-layer="conflicts" checked><span class="lg" style="background:#ff5d6c"></span>紛争・対立地域<span class="c" id="c-conflicts"></span></label>
+    <label><input type="checkbox" data-layer="planes"><span class="lg" style="background:#ffd34d"></span>飛行機（リアルタイム）<span class="c" id="c-planes"></span></label>
+    <label><input type="checkbox" data-layer="trains"><span class="lg" style="background:#46d39a"></span>電車（リアルタイム）<span class="c" id="c-trains"></span></label>
+    <label><input type="checkbox" data-layer="quakes"><span class="lg" style="background:#ff9f43"></span>地震（24時間・M2.5+）<span class="c" id="c-quakes"></span></label>
+    <label><input type="checkbox" data-layer="iss"><span class="lg" style="background:#b18cff"></span>国際宇宙ステーション<span class="c" id="c-iss"></span></label>
+    <div class="note" id="mnote">飛行機は地図の中心から半径約460km以内を表示します。見たい場所へ移動してください。</div>
+  </div>
+  <div class="mpanel" id="side"><button class="x" id="sideX">×</button><div id="sideBody"></div></div>
+</section>
+
+<section class="view wrap" id="view-digest"><div class="dgrid" id="dgrid"><div class="loading"><div class="spin"></div>ダイジェストを作成中…</div></div></section>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const CATS = [
+  ["all","すべて"],["trivia","世界の雑学・へぇ〜"],["tech","テック・未来"],["game","ゲーム・エンタメ"],
+  ["bright","明るいニュース"],["world","世界ニュース"],["fav","★ お気に入り"]
+];
+const LS = {get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
+let S = {items:[], favs:[], tab:LS.get("tab","all"), q:"", sort:LS.get("sort","mix"), hide:LS.get("hide",false), en:LS.get("en",true)};
+$("#sort").value=S.sort; $("#hideBait").checked=S.hide; $("#showEn").checked=S.en;
+
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const stars = n => "★".repeat(n)+"☆".repeat(5-n);
+function ago(t){ if(!t) return ""; const s=Date.now()/1000-t; if(s<3600) return Math.max(1,Math.floor(s/60))+"分前"; if(s<86400) return Math.floor(s/3600)+"時間前"; return Math.floor(s/86400)+"日前"; }
+function toast(m){ const t=$("#toast"); t.textContent=m; t.classList.add("show"); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),1800); }
+const kfmt = n => n>=1000 ? (n/1000).toFixed(1)+"k" : n;
+
+async function api(path, body){
+  const r = await fetch(path, body ? {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)} : {});
+  if(!r.ok) throw new Error((await r.json().catch(()=>({}))).error || r.status);
+  return r.json();
+}
+
+async function loadNews(force){
+  $("#refresh").disabled=true; $("#upd").textContent= force ? "最新を取得中…" : "読み込み中…";
+  if(force) $("#grid").innerHTML='<div class="loading"><div class="spin"></div>最新ニュースを取得・翻訳中…</div>';
+  try{
+    const d = await api("/api/news"+(force?"?refresh=1":""));
+    S.items = d.items||[];
+    const okN = d.sources.filter(s=>s.ok).length; // 灰色=前回分を表示中
+    $("#upd").textContent = `${new Date(d.updated*1000).toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"})} 更新・${okN}/${d.sources.length}ソース`;
+    $("#dots").innerHTML = d.sources.map(s=>`<span class="dot ${s.ok?"ok":(s.reused?"":"ng")}" title="${esc(s.name)}: ${s.ok? s.count+"件": (s.reused? "取得失敗→前回の"+s.count+"件を表示中": "取得失敗 "+esc(s.error||""))}"></span>`).join("");
+    render();
+  }catch(e){
+    $("#grid").innerHTML=`<div class="empty">取得に失敗しました：${esc(e.message)}<br>ネット接続を確認して「⟳ 更新」を押してください</div>`;
+  }finally{ $("#refresh").disabled=false; }
+}
+async function loadFavs(){ try{ S.favs = await api("/api/favorites"); }catch{ S.favs=[]; } }
+
+function renderTabs(){
+  const cnt = c => c==="all"?S.items.length : c==="fav"?S.favs.length : S.items.filter(i=>i.cat===c).length;
+  $("#tabs").innerHTML = CATS.map(([k,l])=>`<button class="tab ${S.tab===k?"on":""}" data-k="${k}">${l}<span class="n">${cnt(k)}</span></button>`).join("");
+}
+
+function list(){
+  let L = S.tab==="fav" ? S.favs : S.tab==="all" ? S.items : S.items.filter(i=>i.cat===S.tab);
+  if(S.q){ const q=S.q.toLowerCase(); L=L.filter(i=>(i.title+" "+i.title_ja+" "+i.desc_ja+" "+i.source).toLowerCase().includes(q)); }
+  if(S.hide) L=L.filter(i=>(i.bait?.stars||1)<4);
+  L=[...L];
+  if(S.sort==="new") L.sort((a,b)=>(b.time||0)-(a.time||0));
+  if(S.sort==="hot") L.sort((a,b)=>(b.score||0)-(a.score||0));
+  if(S.sort==="calm") L.sort((a,b)=>(a.bait?.score||0)-(b.bait?.score||0));
+  return L;
+}
+
+function card(i){
+  const fav = S.favs.some(f=>f.id===i.id);
+  const b = i.bait||{stars:1,label:"",reasons:[]};
+  const ext = i.ext_url && i.ext_url!==i.url;
+  return `<article class="card" data-id="${esc(i.id)}">
+    ${i.thumb?`<div class="thumb" style="background-image:url('${esc(i.thumb)}')"></div>`:""}
+    <div class="cb">
+      <div class="meta"><span class="src">${esc(i.source)}</span><span>${ago(i.time)}</span>
+        ${i.score?`<span>▲${kfmt(i.score)}</span>`:""}${i.comments?`<span>💬${kfmt(i.comments)}</span>`:""}
+        <span class="badge b${b.stars}" data-act="why" title="クリックで理由を表示">煽り ${stars(b.stars)}</span></div>
+      <h3 class="tja">${esc(i.title_ja||i.title)}</h3>
+      ${S.en && i.translated?`<p class="ten">${esc(i.title)}</p>`:""}
+      ${i.desc_ja?`<p class="desc">${esc(i.desc_ja)}</p>`:""}
+      <div class="sumbox"></div>
+      <div class="reasons">${esc(b.label)}${b.reasons?.length?"：<br>・"+b.reasons.map(esc).join("<br>・"):"（目立った煽り表現なし）"}</div>
+      <div class="acts">
+        <a class="ib" href="${esc(i.url)}" target="_blank" rel="noopener">元リンク ↗</a>
+        ${ext?`<a class="ib" href="${esc(i.ext_url)}" target="_blank" rel="noopener">記事本体 ↗</a>`:""}
+        <button class="ib" data-act="sum" title="記事本文を読んで日本語で3行に要約">📝 3行要約</button>
+        <button class="ib" data-act="check" title="チェッカーで詳しく判定">🧊 判定</button>
+        <button class="ib" data-act="copy" title="日本語タイトルとURLをコピー">📋</button>
+        <button class="ib fav sp ${fav?"on":""}" data-act="fav">${fav?"★ 保存済":"☆ 保存"}</button>
+      </div>
+    </div></article>`;
+}
+
+function render(){
+  renderTabs();
+  const L=list();
+  $("#cnt").textContent = `${L.length}件`;
+  $("#grid").innerHTML = L.length ? L.map(card).join("") :
+    `<div class="empty">${S.tab==="fav"?"まだお気に入りはありません。カードの「☆ 保存」で追加できます。":"該当するニュースがありません"}</div>`;
+}
+
+$("#tabs").onclick=e=>{const t=e.target.closest(".tab"); if(!t) return; S.tab=t.dataset.k; LS.set("tab",S.tab); render(); };
+$("#q").oninput=e=>{S.q=e.target.value.trim(); render();};
+$("#sort").onchange=e=>{S.sort=e.target.value; LS.set("sort",S.sort); render();};
+$("#hideBait").onchange=e=>{S.hide=e.target.checked; LS.set("hide",S.hide); render();};
+$("#showEn").onchange=e=>{S.en=e.target.checked; LS.set("en",S.en); render();};
+$("#refresh").onclick=()=>loadNews(true);
+
+$("#grid").onclick=async e=>{
+  const btn=e.target.closest("[data-act]"); if(!btn) return;
+  const el=btn.closest(".card"), id=el.dataset.id;
+  const it=[...S.items,...S.favs].find(x=>x.id===id); if(!it) return;
+  const act=btn.dataset.act;
+  if(act==="why") el.querySelector(".reasons").classList.toggle("show");
+  if(act==="sum") toggleSummary(el.querySelector(".sumbox"), it.ext_url||it.url, it.desc||"");
+  if(act==="copy"){ try{ await navigator.clipboard.writeText(`${it.title_ja}\n${it.ext_url||it.url}`); toast("コピーしました"); }catch{ toast("コピーできませんでした"); } }
+  if(act==="check"){ $("#inp").value = it.ext_url || it.title; window.scrollTo({top:0,behavior:"smooth"}); runCheck(); }
+  if(act==="fav"){
+    try{ const r=await api("/api/favorites",{item:it}); S.favs=r.favorites; toast(r.saved?"お気に入りに保存しました":"お気に入りから外しました");
+      if(S.tab==="fav") render(); else { btn.classList.toggle("on",r.saved); btn.textContent=r.saved?"★ 保存済":"☆ 保存"; renderTabs(); } }
+    catch(err){ toast("保存に失敗: "+err.message); }
+  }
+};
+
+/* ---------- 冷静判定 ---------- */
+function highlight(text, spans){
+  let out="", last=0;
+  for(const s of [...spans].sort((a,b)=>a.start-b.start)){
+    if(s.start<last) continue;
+    out+=esc(text.slice(last,s.start))+`<mark data-l="${esc(s.label)}" style="position:relative">${esc(text.slice(s.start,s.end))}</mark>`;
+    last=s.end;
+  }
+  return out+esc(text.slice(last));
+}
+const color = n => ["#46d39a","#7ee0c3","#ffb547","#ff7a5c","#ff5d6c"][n-1];
+
+async function runCheck(){
+  const v=$("#inp").value.trim(); if(!v){ $("#inp").focus(); return; }
+  const go=$("#go"), res=$("#res"); go.disabled=true; go.textContent="判定中…";
+  res.className="result show"; res.innerHTML='<div style="color:var(--sub)"><div class="spin" style="margin:0 0 8px"></div>'+(/^https?:|^www\./.test(v)?"ページを取得して本文と見比べています…":"解析中…")+'</div>';
+  try{
+    const r=await api("/api/analyze",{input:v});
+    if(r.error){ res.innerHTML=`<div style="color:var(--warn)">⚠ ${esc(r.error)}</div>`; return; }
+    const c=color(r.stars);
+    const kind={youtube:"▶ YouTube動画",x:"𝕏 ポスト",web:"🌐 Webページ",text:"📝 テキスト"}[r.input_type]||"";
+    res.innerHTML=`
+      <div class="rtop">
+        <div class="meter" style="background:conic-gradient(${c} ${r.score*3.6}deg,#222b3a 0)"><div style="position:absolute;inset:7px;background:#121822;border-radius:50%;display:grid;place-items:center"><div style="color:${c}">${r.score}<small>釣り度/100</small></div></div></div>
+        <div style="flex:1;min-width:240px">
+          <div class="stars" style="color:${c}">${stars(r.stars)} <span style="font-size:15px;font-weight:700">${esc(r.label)}</span></div>
+          <div class="verdict">${esc(r.verdict)}</div>
+          <div class="pageinfo">${kind}${r.page?` ・ ${esc(r.page.site)} ・ <a href="${esc(r.page.url)}" target="_blank" rel="noopener">${esc(r.page.url.slice(0,80))}</a>`:""}
+            ${r.gap.available?` ・ 見出しスコア ${r.title_score} ＋ 本文とのギャップ ${r.gap.gap}`:""}</div>
+        </div>
+      </div>
+      <div class="rgrid">
+        <div class="box full"><h3>誇張されている箇所（赤マーカー・ホバーで種類）</h3>
+          <div class="hl">${highlight(r.title, r.spans)}</div>
+          ${r.title_ja?`<div style="color:var(--sub);font-size:13px;margin-top:4px">訳：${esc(r.title_ja)}</div>`:""}</div>
+        <div class="box"><h3>判定の理由</h3><ul>${r.reasons.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+        <div class="box"><h3>タイトルと中身のギャップ</h3><ul>${r.gap.notes.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+        <div class="box"><h3>煽りを抜いた冷静な見出し</h3>
+          ${r.calm_title?`<div class="calm">${esc(r.calm_title_ja||r.calm_title)}</div>`:""}
+          ${r.calm_title_ja?`<div style="color:var(--dim);font-size:12px">${esc(r.calm_title)}</div>`:""}
+          ${r.calm_note?`<div style="color:var(--warn);font-size:13px;margin-top:4px">⚠ ${esc(r.calm_note)}</div>`:""}</div>
+        <div class="box"><h3>事実ベースの要約（本文から抽出）</h3>
+          <div>${r.summary?esc(r.summary):'<span style="color:var(--dim)">本文がないため要約できません。記事やYouTubeのURLを貼ると本文から要約します。</span>'}</div></div>
+      </div>`;
+    if(window.onCheckResult) window.onCheckResult(r);
+  }catch(e){ res.innerHTML=`<div style="color:var(--bad)">エラー：${esc(e.message)}</div>`; }
+  finally{ go.disabled=false; go.textContent="判定する"; }
+}
+$("#go").onclick=runCheck;
+$("#inp").onkeydown=e=>{ if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)) runCheck(); };
+document.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{ $("#inp").value=c.dataset.s; runCheck(); });
+
+
+/* ---------- 3行要約 ---------- */
+const sumCache = {};
+async function toggleSummary(box, url, fallback){
+  if(box.classList.contains("show") && box.dataset.done){ box.classList.remove("show"); return; }
+  box.classList.add("show");
+  if(box.dataset.done) return;
+  box.innerHTML='<span style="color:var(--sub)">⏳ 記事を読んで要約中…</span>';
+  try{
+    const r = sumCache[url] || await api(`/api/summary?url=${encodeURIComponent(url)}&fallback=${encodeURIComponent((fallback||"").slice(0,600))}`);
+    sumCache[url]=r;
+    if(!r.ok){ box.innerHTML=`<span style="color:var(--warn)">⚠ ${esc(r.error)}</span>`; box.dataset.done=1; return; }
+    box.innerHTML=`<b>📝 3行でいうと</b><ol>${r.points.map(p=>`<li>${esc(p)}</li>`).join("")}</ol><div class="s">${esc(r.site||"")} の本文から抽出・自動翻訳</div>`;
+    box.dataset.done=1;
+  }catch(e){ box.innerHTML=`<span style="color:var(--bad)">要約に失敗: ${esc(e.message)}</span>`; }
+}
+
+/* ---------- ビュー切替 ---------- */
+let curView = LS.get("view","news");
+function showView(v){
+  curView=v; LS.set("view",v);
+  document.querySelectorAll(".vbtn").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
+  document.querySelectorAll(".view").forEach(el=>el.classList.toggle("on",el.id==="view-"+v));
+  if(v==="map") initMap();
+  if(v==="digest") loadDigest();
+  if(window.onViewShown) window.onViewShown(v);
+}
+$("#views").onclick=e=>{const b=e.target.closest(".vbtn"); if(b) showView(b.dataset.v);};
+
+/* ---------- 世界マップ ---------- */
+let M=null, LY={}, timers={}, mapData={};
+const LVC = {war:"#ff3b4f",high:"#ff6b3d",mid:"#ffb547",tension:"#c9a6ff"};
+const CATC = {world:"#5b9dff",tech:"#7ee0c3",trivia:"#ffd34d",bright:"#46d39a",game:"#ff8fd1"};
+const fmtT = t => t? new Date(t*1000).toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}) : "";
+
+function side(html){ $("#sideBody").innerHTML=html; $("#side").classList.add("show"); $("#side").scrollTop=0; }
+$("#sideX").onclick=()=>$("#side").classList.remove("show");
+
+function initMap(){
+  if(M){ setTimeout(()=>M.invalidateSize(),50); return; }
+  if(typeof L==="undefined"){ $("#map").innerHTML='<div class="empty">地図ライブラリを読み込めませんでした（インターネット接続を確認してください）</div>'; return; }
+  M = L.map("map",{worldCopyJump:true,zoomControl:false,minZoom:2}).setView(LS.get("mapView",[30,40]), LS.get("mapZoom",3));
+  L.control.zoom({position:"bottomright"}).addTo(M);
+  // 背景地図（APIキー不要）: Esri ダークグレー → 失敗したら OpenStreetMap を暗く表示
+  const ATT='| 飛行機: adsb.lol / 電車: Digitraffic / 地震: USGS / 報道: GDELT';
+  const esri=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+    {attribution:'Tiles &copy; Esri '+ATT,maxZoom:16}).addTo(M);
+  const esriLbl=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",{maxZoom:16,pane:"overlayPane",opacity:.9}).addTo(M);
+  let errs=0, switched=false;
+  esri.on("tileerror",()=>{ if(switched||++errs<6) return; switched=true;
+    M.removeLayer(esri); M.removeLayer(esriLbl);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> '+ATT,maxZoom:19,className:"osm-dark"}).addTo(M);
+    toast("背景地図をOpenStreetMapに切り替えました"); });
+  document.querySelectorAll("#layers input").forEach(cb=>LY[cb.dataset.layer]=L.layerGroup());
+  if(window.onMapInit) window.onMapInit(M);
+  const saved = LS.get("layers",null);
+  document.querySelectorAll("#layers input").forEach(cb=>{
+    if(saved && saved[cb.dataset.layer]!==undefined) cb.checked=saved[cb.dataset.layer];
+    cb.onchange=()=>{ toggleLayer(cb.dataset.layer, cb.checked); const st={}; document.querySelectorAll("#layers input").forEach(c=>st[c.dataset.layer]=c.checked); LS.set("layers",st); };
+    toggleLayer(cb.dataset.layer, cb.checked);
+  });
+  M.on("moveend",()=>{ const c=M.getCenter(); LS.set("mapView",[c.lat,c.lng]); LS.set("mapZoom",M.getZoom()); if(M.hasLayer(LY.planes)) loadPlanes(); });
+}
+
+const LOADERS={news:()=>loadNewsGeo(),flows:()=>loadNewsGeo(),conflicts:()=>loadConflicts(),planes:()=>loadPlanes(),trains:()=>loadTrains(),quakes:()=>loadQuakes(),iss:()=>loadISS()};
+const EVERY={planes:15000,trains:20000,quakes:120000,iss:5000,news:300000,flows:300000,conflicts:600000};
+function toggleLayer(k,on){
+  if(!M) return;
+  if(!LY[k]) LY[k]=L.layerGroup();
+  clearInterval(timers[k]);
+  const cnt=$("#c-"+k);
+  if(!on){ M.removeLayer(LY[k]); if(cnt) cnt.textContent=""; return; }
+  LY[k].addTo(M);
+  if(LOADERS[k]) LOADERS[k]();
+  if(EVERY[k]) timers[k]=setInterval(()=>{ if(curView==="map") LOADERS[k](); }, EVERY[k]);
+}
+
+async function loadNewsGeo(){
+  try{
+    const d = await api("/api/geo"); mapData.geo=d;
+    LY.news.clearLayers(); LY.flows.clearLayers();
+    d.countries.forEach(c=>{
+      const n=c.items.length, cats={}; c.items.forEach(i=>cats[i.cat]=(cats[i.cat]||0)+1);
+      const top=Object.entries(cats).sort((a,b)=>b[1]-a[1])[0][0];
+      const m=L.circleMarker([c.lat,c.lon],{radius:6+Math.sqrt(n)*4,color:CATC[top]||"#5b9dff",weight:2,fillOpacity:.35}).addTo(LY.news);
+      m.bindTooltip(`${esc(c.ja)}：${n}件`,{direction:"top"});
+      m.on("click",()=>side(`<h3>📍 ${esc(c.ja)} の話題 <span class="mtag">${n}件</span></h3>
+        <div class="mtag">この国に言及しているニュース（発信元メディア別）</div>
+        <ul>${c.items.map(i=>`<li>${esc(i.title_ja)}<div class="m">${esc(i.source)} ・ ${fmtT(i.time)} ・ <a href="${esc(i.url)}" target="_blank" rel="noopener">元記事↗</a> ・ <a href="#" data-sum="${esc(i.ext_url||i.url)}">📝要約</a></div><div class="sumbox"></div></li>`).join("")}</ul>`));
+    });
+    d.hqs.forEach(h=>{ if(!h.count) return;
+      L.circleMarker([h.lat,h.lon],{radius:5,color:"#7ee0c3",fillColor:"#7ee0c3",fillOpacity:1}).addTo(LY.flows)
+        .bindTooltip(`📡 発信元: ${esc(h.name)}（${esc(h.label)}）${h.count}件`); });
+    d.flows.forEach(f=>{
+      L.polyline(arc(f.from,f.to),{color:"#7ee0c3",weight:1+Math.min(4,f.count/2),opacity:.55,dashArray:"4 6"}).addTo(LY.flows)
+        .bindTooltip(`${esc(f.source)}（${esc(f.hq)}）→ ${esc(f.country)}：${f.count}件`);
+    });
+    $("#c-news").textContent=d.countries.length+"か国";
+    $("#c-flows").textContent=d.flows.length+"本";
+  }catch(e){ $("#c-news").textContent="失敗"; }
+}
+
+function arc(a,b){ // 2点間を緩やかなカーブで結ぶ
+  const pts=[], mx=(a[0]+b[0])/2, my=(a[1]+b[1])/2, dx=b[1]-a[1], dy=b[0]-a[0], k=.18;
+  const cx=mx+dx*k, cy=my-dy*k;
+  for(let t=0;t<=1.0001;t+=.05){ pts.push([(1-t)*(1-t)*a[0]+2*(1-t)*t*cx+t*t*b[0],(1-t)*(1-t)*a[1]+2*(1-t)*t*cy+t*t*b[1]]); }
+  return pts;
+}
+
+async function loadConflicts(){
+  try{
+    const d = await api("/api/conflicts"); mapData.conf=d; LY.conflicts.clearLayers();
+    d.conflicts.forEach(c=>{
+      const col=LVC[c.level], sz={war:22,high:18,mid:14,tension:12}[c.level];
+      const ic=L.divIcon({className:"",html:`<div class="pulse" style="--pc:${col};width:${sz}px;height:${sz}px;background:${col}aa;border:2px solid ${col}"></div>`,iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});
+      const m=L.marker([c.lat,c.lon],{icon:ic}).addTo(LY.conflicts);
+      m.bindTooltip(`⚔ ${esc(c.name)}（${esc(c.level_ja)}）`,{direction:"top"});
+      m.on("click",()=>openConflict(c));
+      if(c.arc) L.polyline(arc(c.arc[0],c.arc[1]),{color:col,weight:2.5,opacity:.8,dashArray:"8 6"}).addTo(LY.conflicts)
+        .bindTooltip(`${esc(c.parties.join(" ⇄ "))}`);
+    });
+    $("#c-conflicts").textContent=d.conflicts.length+"地域";
+  }catch(e){ $("#c-conflicts").textContent="失敗"; }
+}
+
+async function openConflict(c){
+  const col=LVC[c.level];
+  side(`<h3>⚔ ${esc(c.name)}</h3>
+    <div><span class="lv" style="background:${col}33;color:${col}">${esc(c.level_ja)}</span><span class="mtag">${esc(c.since)}</span></div>
+    <p style="font-size:14px;margin:8px 0">${esc(c.desc)}</p>
+    <div style="font-size:13px"><b>対立している勢力：</b>${c.parties.map(esc).join(" ⇄ ")}</div>
+    <div class="mtag" style="margin-top:4px">※${esc(mapData.conf?.note||"")}</div>
+    <div id="ctl"></div>
+    <h4 style="margin:14px 0 2px;font-size:14px">🛰 最新の報道（直近3日・世界のメディアから）<span class="mtag" id="cvia"></span></h4>
+    <div id="cnews"><div class="spin" style="margin:10px 0"></div></div>`);
+  if(window.renderTimeline) renderTimeline("#ctl","conflict",c.id);
+  try{
+    const r = await api("/api/conflict_news?id="+c.id);
+    const o = Object.entries(r.origins||{}).sort((a,b)=>b[1]-a[1]);
+    if(r.via) $("#cvia").textContent=" via "+r.via;
+    $("#cnews").innerHTML = (r.error?`<div class="mtag" style="color:var(--warn)">${esc(r.error)}</div>`:"")+
+      (o.length?`<div class="mtag">📡 どこの国のメディアが報じているか（媒体の所在国）：</div><div class="orig">${o.map(([k,v])=>`<span>${esc(k)} ${v}</span>`).join("")}</div>`:"")+
+      (r.articles.length?`<ul>${r.articles.map(a=>`<li>${esc(a.title_ja||a.title)}<div class="m">${esc(a.domain||"")}${a.country?" ・ "+esc(a.country):""} ・ <a href="${esc(a.url)}" target="_blank" rel="noopener">元記事↗</a> ・ <a href="#" data-sum="${esc(a.url)}">📝要約</a></div><div class="sumbox"></div></li>`).join("")}</ul>`:'<div class="mtag">直近の報道が見つかりませんでした</div>');
+  }catch(e){ $("#cnews").innerHTML=`<div class="mtag">取得に失敗: ${esc(e.message)}</div>`; }
+}
+$("#side").addEventListener("click",e=>{
+  const a=e.target.closest("[data-sum]"); if(!a) return; e.preventDefault();
+  toggleSummary(a.closest("li").querySelector(".sumbox"), a.dataset.sum, "");
+});
+
+const planeSVG = (deg,g)=>`<svg class="plane ${g?"g":""}" width="18" height="18" viewBox="0 0 24 24" style="transform:rotate(${deg}deg)"><path fill="currentColor" d="M12 2c.8 0 1.3.9 1.3 2v5.2l7.7 4.6v2l-7.7-2.3v4.3l2.2 1.6V21L12 20l-3.5 1v-1.6l2.2-1.6v-4.3L3 15.8v-2l7.7-4.6V4c0-1.1.5-2 1.3-2z"/></svg>`;
+let planeBusy=false;
+async function loadPlanes(){
+  if(!M||planeBusy) return; planeBusy=true;
+  const c=M.getCenter(), b=M.getBounds();
+  const r=Math.min(460, c.distanceTo(b.getNorthEast())/1000);
+  $("#c-planes").textContent="更新中…";
+  try{
+    const d=await api(`/api/planes?lat=${c.lat.toFixed(2)}&lon=${(((c.lng+180)%360+360)%360-180).toFixed(2)}&r=${Math.round(r)}`);
+    LY.planes.clearLayers();
+    L.circle([c.lat,c.lng],{radius:d.radius_km*1000||r*1000,color:"#ffd34d",weight:1,opacity:.25,fill:false,dashArray:"3 6"}).addTo(LY.planes);
+    d.planes.slice(0,1500).forEach(p=>{
+      const m=L.marker([p.lat,p.lon],{icon:L.divIcon({className:"",html:planeSVG(p.track,p.ground),iconSize:[18,18],iconAnchor:[9,9]})}).addTo(LY.planes);
+      m.bindPopup(`<b>✈ ${esc(p.call||"(便名なし)")}</b><br>${esc(p.desc||p.type||"")} ${p.reg?"・"+esc(p.reg):""}<br>高度 ${p.ground?"地上":p.alt_m.toLocaleString()+" m"} ・ 速度 ${p.spd_kmh} km/h ・ 方角 ${Math.round(p.track)}°<br><a href="https://globe.adsb.lol/?icao=${esc(p.id)}" target="_blank" rel="noopener">航跡を見る↗</a>`);
+    });
+    $("#c-planes").textContent = d.error? "取得失敗" : `${d.planes.length}機`;
+    $("#mnote").textContent = d.error? "飛行機データ: "+d.error : `飛行機: 中心から半径${d.radius_km}km以内（${d.source}）。地図を動かすと更新されます。`;
+  }catch(e){ $("#c-planes").textContent="失敗"; }
+  finally{ planeBusy=false; }
+}
+
+async function loadTrains(){
+  try{
+    const d=await api("/api/trains"); LY.trains.clearLayers();
+    d.trains.forEach(t=>{
+      L.marker([t.lat,t.lon],{icon:L.divIcon({className:"",html:`<div class="train ${t.country==="日本"?"jp":""}"></div>`,iconSize:[9,9],iconAnchor:[5,5]})}).addTo(LY.trains)
+       .bindPopup(`<b>🚆 ${esc(t.name)}</b><br>${esc(t.op)}（${esc(t.country)}）<br>${t.where?esc(t.where)+"<br>":""}${t.spd_kmh!=null?"速度 "+t.spd_kmh+" km/h":""}${t.delay?` ・ <span style="color:var(--warn)">${t.delay}分遅れ</span>`:""}`);
+    });
+    $("#c-trains").textContent=d.trains.length+"本";
+    const st=d.status.map(s=>`${s.ok?"✅":"⚪"} ${esc(s.name)}${s.ok?`：${s.count}本`:`：${esc(s.error||"")}`}`).join("<br>");
+    $("#mnote").innerHTML="🚆 電車データ<br>"+st;
+  }catch(e){ $("#c-trains").textContent="失敗"; }
+}
+
+async function loadQuakes(){
+  try{
+    const d=await api("/api/quakes"); LY.quakes.clearLayers();
+    d.quakes.forEach(q=>{
+      const col=q.mag>=6?"#ff3b4f":q.mag>=4.5?"#ff9f43":"#ffd34d";
+      L.circleMarker([q.lat,q.lon],{radius:3+q.mag*2,color:col,weight:1.5,fillOpacity:.3}).addTo(LY.quakes)
+       .bindPopup(`<b>🌋 M${q.mag.toFixed(1)}</b> ${esc(q.place_ja||q.place)}<br>${fmtT(q.time)} ・ 深さ ${Math.round(q.depth)} km${q.tsunami?'<br><b style="color:#ff5d6c">津波情報あり</b>':""}<br><a href="${esc(q.url)}" target="_blank" rel="noopener">USGS詳細↗</a>`);
+    });
+    $("#c-quakes").textContent=d.quakes.length+"件";
+  }catch(e){ $("#c-quakes").textContent="失敗"; }
+}
+
+let issTrail=[];
+async function loadISS(){
+  try{
+    const d=await api("/api/iss"); LY.iss.clearLayers();
+    issTrail.push([d.lat,d.lon]); if(issTrail.length>120) issTrail.shift();
+    for(let i=1;i<issTrail.length;i++){ if(Math.abs(issTrail[i][1]-issTrail[i-1][1])<180) L.polyline([issTrail[i-1],issTrail[i]],{color:"#b18cff",weight:2,opacity:.6}).addTo(LY.iss); }
+    L.marker([d.lat,d.lon],{icon:L.divIcon({className:"",html:'<div class="issi">🛰</div>',iconSize:[24,24],iconAnchor:[12,12]})}).addTo(LY.iss)
+     .bindPopup(`<b>🛰 国際宇宙ステーション (ISS)</b><br>高度 ${d.alt_km} km ・ 時速 ${d.spd_kmh.toLocaleString()} km<br>約90分で地球を1周しています`);
+    $("#c-iss").textContent=`高度${d.alt_km}km`;
+  }catch(e){ $("#c-iss").textContent="失敗"; }
+}
+
+/* ---------- ダイジェスト ---------- */
+async function loadDigest(){
+  try{
+    const d=await api("/api/digest");
+    const mx=Math.max(1,...d.top_countries.map(c=>c.count));
+    const tot=Object.values(d.bait_stats).reduce((a,b)=>a+b,0)||1;
+    const three=["world","tech","trivia"].map(k=>d.categories[k]?.items[0]).filter(Boolean);
+    $("#dgrid").innerHTML=`
+      <div class="dcard wide"><h3>🌏 いまの世界を3行で <span class="mtag">${fmtT(d.updated)} 時点・${d.total}件から自動作成</span></h3>
+        <ol style="margin:0;padding-left:22px;font-size:15.5px;line-height:1.9">${three.map(i=>`<li>${esc(i.title_ja)} <span class="mtag">（${esc(i.source)}）</span></li>`).join("")}</ol></div>
+      <div class="dcard"><h3>📍 話題になっている国</h3>${d.top_countries.map(c=>`<div class="bar" title="${esc(c.headline)}"><span class="l">${esc(c.ja)}</span><span class="b" style="width:${c.count/mx*60}%"></span><span class="mtag">${c.count}</span></div>`).join("")||'<div class="mtag">データなし</div>'}
+        <button class="btn" style="margin-top:8px" onclick="showView('map')">🗺 地図で見る</button></div>
+      <div class="dcard"><h3>🔑 今日のキーワード</h3><div class="samples">${d.keywords.map(k=>`<button class="chip" data-kw="${esc(k.en)}">${esc(k.ja)} <span style="opacity:.6">${k.count}</span></button>`).join("")||'<span class="mtag">なし</span>'}</div>
+        <div class="mtag" style="margin-top:8px">クリックするとニュースを絞り込みます</div></div>
+      <div class="dcard"><h3>⚔ 紛争関連の報道</h3><ul class="dl">${d.conflicts_in_news.map(c=>`<li><b>${esc(c.name)}</b> <span class="mtag">${esc(c.level_ja)}・${c.count}件</span><div class="m">${esc(c.headline)}</div></li>`).join("")||'<li class="mtag">収集したニュースの中に紛争関連の記事はありません</li>'}</ul></div>
+      <div class="dcard"><h3>🧊 見出しの冷静度</h3>${[1,2,3,4,5].map(i=>`<div class="bar"><span class="l">${stars(i)}</span><span class="b" style="width:${(d.bait_stats[i]||0)/tot*70}%;background:${color(i)}"></span><span class="mtag">${d.bait_stats[i]||0}</span></div>`).join("")}
+        <div class="mtag">海外の見出しは比較的落ち着いたものが多めです</div></div>
+      ${Object.entries(d.categories).map(([k,c])=>`<div class="dcard"><h3>${esc(c.label)} ピックアップ</h3><ul class="dl">${c.items.map(i=>`<li>${esc(i.title_ja)}${i.desc_ja?`<div class="m">${esc(i.desc_ja.slice(0,90))}…</div>`:""}<div class="m">${esc(i.source)} ・ <a href="${esc(i.url)}" target="_blank" rel="noopener">元記事↗</a> ・ <a href="#" data-sum="${esc(i.ext_url||i.url)}">📝3行要約</a></div><div class="sumbox"></div></li>`).join("")}</ul></div>`).join("")}`;
+    if(window.onDigest) window.onDigest(d);
+  }catch(e){ $("#dgrid").innerHTML=`<div class="empty">ダイジェストを作れませんでした：${esc(e.message)}</div>`; }
+}
+$("#dgrid").addEventListener("click",e=>{
+  const a=e.target.closest("[data-sum]"); if(a){ e.preventDefault(); toggleSummary(a.closest("li").querySelector(".sumbox"),a.dataset.sum,""); return; }
+  const k=e.target.closest("[data-kw]"); if(k){ S.q=k.dataset.kw; $("#q").value=S.q; S.tab="all"; showView("news"); render(); }
+});
+
+(async()=>{
+  const qp=new URLSearchParams(location.search); if(qp.get("view")) curView=qp.get("view");
+  await loadFavs(); renderTabs(); await loadNews(false); setInterval(()=>loadNews(false), 5*60*1000);
+  if(curView!=="news") showView(curView);
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script src="/static/extra.js"></script>
+<script src="/static/extra2.js"></script>
+<script src="/static/extra3.js"></script>
+<script src="/static/extra4.js"></script>
+</body>
+</html>

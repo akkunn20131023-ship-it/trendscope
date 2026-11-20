@@ -1,0 +1,4 @@
+{
+  "odpt_key": "",
+  "_help": "このファイルを config.json という名前でコピーすると設定の初期値になります（config.json は Git に含めません）"
+}

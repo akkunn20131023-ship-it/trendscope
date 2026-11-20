@@ -1,0 +1,13 @@
+/*
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Cross-Origin-Opener-Policy: same-origin
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com https://challenges.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: https://server.arcgisonline.com https://*.arcgisonline.com https://unpkg.com https://upload.wikimedia.org; connect-src 'self' https://earthquake.usgs.gov https://api.wheretheiss.at https://api.open-meteo.com https://air-quality-api.open-meteo.com https://challenges.cloudflare.com https://cloudflareinsights.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+
+/app.js
+  Cache-Control: public, max-age=3600
+/style.css
+  Cache-Control: public, max-age=3600

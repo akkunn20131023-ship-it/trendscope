@@ -1,0 +1,38 @@
+name: 公開版のニュースを更新
+
+on:
+  schedule:
+    - cron: "17 * * * *"   # 1時間ごと（毎時17分）
+  workflow_dispatch: {}     # 手動実行ボタン
+
+permissions:
+  contents: read
+
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 翻訳キャッシュを復元
+        uses: actions/cache@v4
+        with:
+          path: |
+            data/translations.json
+            data/news_cache.json
+          key: ts-cache-${{ github.run_id }}
+          restore-keys: ts-cache-
+      - name: ニュースを集めて公開版へ送信
+        env:
+          PUBLIC_SITE_URL: ${{ secrets.PUBLIC_SITE_URL }}
+          UPLOAD_SECRET: ${{ secrets.UPLOAD_SECRET }}
+          PUBLIC_TRANSLATE: ${{ vars.PUBLIC_TRANSLATE || '1' }}
+          PYTHONIOENCODING: utf-8
+        run: python collect_public.py

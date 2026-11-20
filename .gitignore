@@ -1,0 +1,8 @@
+# 個人データ・設定（公開リポジトリに載せない）
+data/
+config.json
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+.env

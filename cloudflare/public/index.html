@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TrendScope — 世界の面白ニュースと釣りタイトル冷静判定</title>
+<meta name="description" content="世界の面白ニュース・流行を日本語でまとめて表示。見出しの「釣り度」を冷静に判定し、紛争・地震・天気・飛行機などを世界地図で一覧できる無料サイトです。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="TrendScope — 世界の面白ニュースと釣りタイトル冷静判定">
+<meta property="og:description" content="世界のニュースを日本語で。煽り見出しの釣り度判定と、紛争・地震・天気の世界地図。">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0d1016">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" href="style.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"TrendScope","inLanguage":"ja","description":"世界の面白ニュースを日本語で。見出しの釣り度を冷静に判定。"}</script>
+</head>
+<body>
+<header><div class="wrap hrow">
+  <a class="logo" href="/">🌍 <span>TrendScope</span></a>
+  <nav class="views" id="views" aria-label="画面の切り替え">
+    <button class="vbtn on" data-v="news">📰 ニュース</button>
+    <button class="vbtn" data-v="map">🗺 世界マップ</button>
+    <button class="vbtn" data-v="digest">📋 ダイジェスト</button>
+    <button class="vbtn" data-v="compare">🗾 温度差</button>
+  </nav>
+  <div class="status"><span id="upd">読み込み中…</span></div>
+</div></header>
+
+<main class="wrap view on" id="view-news">
+  <section class="checker" aria-label="冷静判定チェッカー">
+    <h1>🧊 見出しの「釣り度」を冷静判定</h1>
+    <p class="hint">YouTubeのタイトルやSNSの投稿・ニュース見出しを貼り付けると、煽り表現を見つけて釣り度★1〜5で判定します（判定はあなたのブラウザ内だけで行い、入力内容は送信されません）。</p>
+    <div class="crow"><textarea id="inp" placeholder="例）【衝撃】99%の人が知らない〇〇の真実がヤバすぎる…！！"></textarea><button class="btn pri" id="go">判定する</button></div>
+    <div class="result" id="res"></div>
+  </section>
+  <nav class="tabs" id="tabs"></nav>
+  <div class="tools"><input type="search" id="q" placeholder="🔍 キーワードで絞り込み"><label><input type="checkbox" id="hideBait"> 釣り（★4以上）を隠す</label><span id="cnt"></span></div>
+  <section class="grid" id="grid"></section>
+  <section class="ssr" id="ssr"><!--SSR--></section>
+</main>
+
+<section class="view" id="view-map">
+  <div id="map"></div>
+  <div class="mpanel" id="layers"><h4>🗺 表示レイヤー <button class="ib" id="fold">⇕</button></h4><div id="layerList"></div><div class="note" id="mnote">紛争地域や地震などを重ねて表示します。</div></div>
+  <div class="mpanel" id="side"><button class="x" id="sideX">×</button><div id="sideBody"></div></div>
+</section>
+
+<section class="view wrap" id="view-digest"><div class="dgrid" id="dgrid"></div></section>
+<section class="view wrap" id="view-compare"><div class="dgrid" id="cmp"></div></section>
+
+<footer class="wrap foot">
+  <p>TrendScope は、海外ニュースサイト・掲示板・公的機関などが公開している情報から<b>見出しとリンク</b>を自動で集め、機械翻訳と自動分析を加えて表示しています。記事の内容・正確性は各リンク先でご確認ください。見出しの日本語訳は機械翻訳です。</p>
+  <p>データ: Hacker News / Reddit / ScienceDaily / BBC / Good News Network / Googleニュース / USGS / Open-Meteo / wheretheiss.at / adsb.lol / Launch Library 2 / Wikipedia (CC BY-SA) / 世界銀行 ・ 地図 &copy; Esri, OpenStreetMap</p>
+  <p class="mtag" id="metaInfo"></p>
+</footer>
+<div class="toast" id="toast"></div>
+<div id="tsBox"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="app.js"></script>
+</body>
+</html>
