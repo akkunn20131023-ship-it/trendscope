@@ -22,6 +22,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
   clean.meta.ai_translate = tr.enabled;
   await env.TS.put("latest", JSON.stringify(clean));
   let archived = 0; try { archived = await updateArchive(env, clean.news); } catch {}
-  waitUntil(maybeBuildToday(env, clean.news).catch(() => {}));
-  return json({ stored: true, items: clean.news.length, at: Date.now(), translate: tr, archived });
+  let today = null;
+  try { today = await Promise.race([maybeBuildToday(env, clean.news), new Promise((r) => setTimeout(() => r({ skipped: "timeout" }), 40000))]); }
+  catch (e) { today = { error: String(e).slice(0, 200) }; }
+  if (today && !today.skipped?.startsWith?.("exists") && today.skipped !== "before 6am") waitUntil(env.TS.put("today:status", JSON.stringify({ at: Date.now(), ...today })).catch(() => {}));
+  return json({ stored: true, items: clean.news.length, at: Date.now(), translate: tr, archived, today });
 }

@@ -22,14 +22,14 @@ export async function maybeBuildToday(env, news, force = false) {
   const date = jstDate();
   if (!force && jst().getUTCHours() < 6) return { skipped: "before 6am" };
   if (!force && (await env.TS.get("today:" + date))) return { skipped: "exists" };
-  const cands = pickCandidates(news), items = [];
+  const cands = pickCandidates(news), items = [], errors = [];
   for (let k = 0; k < cands.length && items.length < 5; k += 5) {
     const group = cands.slice(k, k + (5 - items.length) + 1);
-    const res = await Promise.all(group.map((i) => summarizeItem(env, i).then((s) => ({ i, s })).catch(() => null)));
+    const res = await Promise.all(group.map((i) => summarizeItem(env, i).then((s) => ({ i, s })).catch((e) => { errors.push(`${i.id}: ${e.message}`.slice(0, 120)); return null; })));
     for (const r of res) if (r && items.length < 5 && !items.some((x) => x.id === r.i.id))
       items.push({ id: r.i.id, title: r.i.title, title_ja: r.i.title_ja || "", source: r.i.source, url: r.i.url, cat: r.i.cat, time: r.i.time, bait: r.i.bait, lines: r.s.lines, why: r.s.why });
   }
-  if (items.length < 3) return { skipped: "not enough", got: items.length };
+  if (items.length < 3) return { skipped: "not enough", got: items.length, tried: cands.length, errors };
   await env.TS.put("today:" + date, JSON.stringify({ date, built: Date.now(), items }), { expirationTtl: 120 * 86400 });
   let idx = []; try { idx = JSON.parse((await env.TS.get("today:index")) || "[]"); } catch {}
   idx = [date, ...idx.filter((d) => d !== date)].slice(0, 60);
@@ -38,9 +38,9 @@ export async function maybeBuildToday(env, news, force = false) {
 }
 
 export async function loadToday(env, date) {
-  let idx = []; try { idx = JSON.parse((await env.TS.get("today:index", { cacheTtl: 300 })) || "[]"); } catch {}
+  let idx = []; try { idx = JSON.parse((await env.TS.get("today:index", { cacheTtl: 60 })) || "[]"); } catch {}
   const d = date || idx[0];
   if (!d) return { idx, day: null };
-  let day = null; try { day = JSON.parse((await env.TS.get("today:" + d, { cacheTtl: 300 })) || "null"); } catch {}
+  let day = null; try { day = JSON.parse((await env.TS.get("today:" + d, { cacheTtl: 60 })) || "null"); } catch {}
   return { idx, day };
 }
