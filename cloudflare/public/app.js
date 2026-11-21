@@ -266,7 +266,7 @@ const LOAD={
   planes(){ loadPlanes(); },
   async traffic(){ if(!D) return;
     if(!TDE.at||Date.now()-TDE.at>600000){ $("#c-traffic").textContent="読み込み中…";
-      const parts=await Promise.all([0,1,2,3,4,5].map(p=>getJ("/api/traffic-de?part="+p).catch(()=>({items:[]}))));
+      const parts=await Promise.all([0,1,2,3,4,5].map(p=>getJ("/api/traffic-de?part="+p+"&t="+Math.floor(Date.now()/600000)).catch(()=>({items:[]}))));
       TDE={at:Date.now(),items:parts.flatMap(p=>p.items||[])}; }
     LY.traffic.clearLayers(); const T=D.traffic||{}; const seen=new Set();
     const all=[...TDE.items,...(T.de||[]),...(T.jp||[])].filter(i=>!seen.has(i.id)&&seen.add(i.id));

@@ -69,8 +69,8 @@ export async function roadItems(road, dbg) {
       if (x.future === true) continue;
       const it = item(x, svc, road); if (!it) continue;
       if (it.end && it.end < now) continue;
-      // 工事の車線規制は件数が多いので、全面通行止め・出入口の閉鎖・まもなく終わるものだけ
-      if (svc === "closure") { if (!(it.blocked || it.ramp || (it.end && it.end - now < 6 * 3600))) continue; }
+      // 工事の規制は件数が多いので、全面通行止めと「48時間以内に解除予定」のものだけ
+      if (svc === "closure") { if (!(it.blocked || (it.end && it.end - now < 48 * 3600))) continue; }
       else if (it.kind === "jam" && (it.delay || 0) < 15) continue;
       out.push(it);
     }
