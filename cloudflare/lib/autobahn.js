@@ -53,10 +53,11 @@ export async function roads() {
   const j = await getJSON(AB);
   return (j.roads || []).map((r) => r.trim()).filter((r) => /^A\s?\d+$/.test(r)).sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
 }
-export async function roadItems(road) {
+export async function roadItems(road, dbg) {
   const out = [], now = Date.now() / 1000;
   for (const svc of ["warning", "closure"]) {
-    let j; try { j = await getJSON(AB + encodeURIComponent(road) + "/services/" + svc); } catch { continue; }
+    let j; try { j = await getJSON(AB + encodeURIComponent(road) + "/services/" + svc); } catch (e) { dbg?.errors.push(`${road}/${svc}: ${e.message}`); continue; }
+    if (dbg) { dbg.raw[svc] = (dbg.raw[svc] || 0) + (j[svc] || []).length; const b = (j[svc] || []).find((x) => x.future !== true && String(x.isBlocked) === "true"); if (b && dbg.samples.length < 3) dbg.samples.push((b.description || []).slice(0, 4)); }
     for (const x of j[svc] || []) {
       if (x.future === true) continue;
       const it = item(x, svc); if (!it) continue;

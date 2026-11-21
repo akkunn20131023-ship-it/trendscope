@@ -7,16 +7,18 @@ export async function onRequestGet({ request, waitUntil }) {
   const u = new URL(request.url), part = Number(u.searchParams.get("part"));
   if (!Number.isInteger(part) || part < 0 || part >= PARTS) return json({ error: "bad request" }, 400);
   const cache = caches.default, key = new Request(`${u.origin}/api/traffic-de?part=${part}`);
-  const hit = await cache.match(key); if (hit) return hit;
+  const debug = u.searchParams.get("debug") === "1", dbg = debug ? { errors: [], raw: {}, samples: [] } : null;
+  const hit = debug ? null : await cache.match(key); if (hit) return hit;
   const lim = limited(request, "traffic", 30, 60); if (lim) return lim;
   let list = [];
   try { list = await roads(); } catch (e) { return json({ error: "取得に失敗しました", detail: String(e).slice(0, 100) }, 502); }
   const mine = list.filter((_, k) => k % PARTS === part).slice(0, 22); // 1回あたり外部アクセス最大 1+44 回
   const items = [];
   for (let k = 0; k < mine.length; k += 6) {
-    const res = await Promise.all(mine.slice(k, k + 6).map((r) => roadItems(r).catch(() => [])));
+    const res = await Promise.all(mine.slice(k, k + 6).map((r) => roadItems(r, dbg).catch((e) => { dbg?.errors.push(String(e)); return []; })));
     res.forEach((a) => items.push(...a));
   }
+  if (debug) return json({ part, roads: mine, n: items.length, dbg });
   const res = json({ part, roads: mine, items, at: Date.now() }, 200, { "Cache-Control": "public, max-age=600" });
   waitUntil(cache.put(key, res.clone()));
   return res;
