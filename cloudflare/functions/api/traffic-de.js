@@ -6,7 +6,7 @@ export const PARTS = 6;
 export async function onRequestGet({ request, waitUntil }) {
   const u = new URL(request.url), part = Number(u.searchParams.get("part"));
   if (!Number.isInteger(part) || part < 0 || part >= PARTS) return json({ error: "bad request" }, 400);
-  const cache = caches.default, key = new Request(`${u.origin}/api/traffic-de?part=${part}`);
+  const cache = caches.default, key = new Request(`${u.origin}/api/traffic-de?v=2&part=${part}`);
   const debug = u.searchParams.get("debug") === "1", dbg = debug ? { errors: [], raw: {}, samples: [] } : null;
   const hit = debug ? null : await cache.match(key); if (hit) return hit;
   const lim = limited(request, "traffic", 30, 60); if (lim) return lim;
