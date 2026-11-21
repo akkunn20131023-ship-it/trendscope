@@ -1,5 +1,5 @@
 // 記事ごとの共有ページ（SNSで貼るとカード表示される・検索エンジンにも載る）
-import { getItem, getSummary } from "../../lib/archive.js";
+import { getItem, getSummary, loadArchive } from "../../lib/archive.js";
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const STAR = (n) => "★".repeat(n) + "☆".repeat(5 - n);
 
@@ -7,10 +7,15 @@ export async function onRequestGet({ params, request, env }) {
   const origin = new URL(request.url).origin;
   const item = await getItem(env, params.id);
   if (!item) {
-    return new Response(`<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>記事が見つかりません — TrendScope</title><link rel="stylesheet" href="/style.css?v=4"></head><body><main class="wrap share"><h1>記事が見つかりません</h1><p>古くなって保管期間を過ぎた可能性があります。</p><p><a class="btn" href="/">TrendScope のトップへ</a></p></main></body></html>`,
+    return new Response(`<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>記事が見つかりません — TrendScope</title><link rel="stylesheet" href="/style.css?v=5"></head><body><main class="wrap share"><h1>記事が見つかりません</h1><p>古くなって保管期間を過ぎた可能性があります。</p><p><a class="btn" href="/">TrendScope のトップへ</a></p></main></body></html>`,
       { status: 404, headers: { "Content-Type": "text/html; charset=utf-8" } });
   }
   const sum = await getSummary(env, item.id);
+  const arch = await loadArchive(env);
+  const prev = (item.prev || arch[item.id]?.prev || []).map((x) => arch[x]).filter(Boolean);
+  const next = Object.values(arch).filter((o) => (o.prev || []).includes(item.id)).sort((a, b) => (a.time || 0) - (b.time || 0)).slice(0, 5);
+  const li = (o) => `<li><a href="/a/${esc(o.id)}">${esc(o.title_ja || o.title)}</a> <span class="mtag">${esc(o.source)}${o.time ? "・" + new Date(o.time * 1000).toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" }) : ""}</span></li>`;
+  const flow = (prev.length ? `<h2>🧵 これまでの流れ</h2><ul class="flowl">${prev.map(li).join("")}</ul>` : "") + (next.length ? `<h2>🔁 続報</h2><ul class="flowl">${next.map(li).join("")}</ul>` : "");
   const title = item.title_ja || item.title;
   const stars = Math.max(1, Math.min(5, item.bait?.stars || 1));
   const desc = sum?.lines?.length ? sum.lines.join(" ") : `${item.source}のニュース「${item.title}」。見出しの釣り度は${STAR(stars)}（TrendScope 自動判定）。`;
@@ -27,7 +32,7 @@ export async function onRequestGet({ params, request, env }) {
 <meta property="og:url" content="${esc(url)}"><meta property="og:image" content="${origin}/icon-512.png">
 <meta name="twitter:card" content="summary"><meta name="theme-color" content="#0d1016">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="manifest" href="/manifest.webmanifest">
-<link rel="stylesheet" href="/style.css?v=4">
+<link rel="stylesheet" href="/style.css?v=5">
 <script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>
 </head><body>
 <header><div class="wrap hrow"><a class="logo" href="/">🌍 <span>TrendScope</span></a></div></header>
@@ -36,12 +41,13 @@ export async function onRequestGet({ params, request, env }) {
     <div class="meta"><span class="src">${esc(item.source)}</span><span>${esc(when)}</span><span class="badge b${stars}">釣り ${STAR(stars)}</span></div>
     <h1 class="tja">${esc(title)}</h1>${item.title_ja && item.title_ja !== item.title ? `<p class="ten">${esc(item.title)}</p>` : ""}
     <section class="sum" id="sum" data-id="${esc(item.id)}">${sum ? `<h2>📝 3行要約</h2><ul>${sum.lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>${sum.why ? `<h2>💡 なぜ話題？</h2><p>${esc(sum.why.replace(/(^|\s)-\s+/g, "$1"))}</p>` : ""}<p class="mtag">${esc(sum.note)}</p>` : `<button class="btn" id="sumBtn">📝 AIで3行要約する</button>`}</section>
+    ${flow ? `<section class="sum">${flow}</section>` : ""}
     <div class="acts"><a class="ib" href="${esc(item.url)}" target="_blank" rel="noopener nofollow">元記事を読む ↗</a><button class="ib" id="shareBtn" data-url="${esc(url)}" data-title="${esc(title)}">🔗 共有</button><a class="ib" href="/">ほかのニュースを見る</a></div>
   </div></article>
   <p class="mtag">見出しの日本語訳・要約・釣り度は機械による自動処理です。記事の内容・正確性は元記事でご確認ください。</p>
 </main>
 <div id="tsBox"></div><div class="toast" id="toast"></div>
-<script src="/share.js?v=4"></script>
+<script src="/share.js?v=5"></script>
 </body></html>`;
   return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=300" } });
 }

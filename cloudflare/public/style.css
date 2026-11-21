@@ -250,3 +250,18 @@ h1{font-size:16px;margin:0 0 4px}
 .t5p{font-size:16px;margin:22px 0 8px}
 .t5past{display:flex;flex-wrap:wrap;gap:8px}
 .t5past a{padding:7px 12px;border:1px solid var(--line);border-radius:999px;color:var(--text);text-decoration:none;font-size:13.5px}
+
+/* ===== 答え合わせ・これまでの流れ・穴場 ===== */
+.gapv{border-left:4px solid;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,.03);margin:6px 0}
+.gapv b{font-size:16px}
+.gapv p{margin:6px 0 0;font-size:14px;line-height:1.7}
+#gapBox h4{margin:10px 0 4px;font-size:13.5px}
+#gapBox ul{margin:0;padding-left:20px;line-height:1.7;font-size:14px}
+details.flow{margin:8px 0 2px;font-size:13.5px}
+details.flow summary{cursor:pointer;color:var(--acc);padding:3px 0}
+details.flow ul{margin:6px 0;padding-left:18px;line-height:1.7}
+details.flow a{color:var(--text)}
+.flowl{margin:0;padding-left:18px;line-height:1.8;font-size:14.5px}
+.t5mini{margin:4px 0;padding-left:22px;line-height:1.85;font-size:14.5px}
+.t5mini a,#hiddenCard a{color:var(--text)}
+.hidden5{border-color:rgba(255,196,77,.4)}

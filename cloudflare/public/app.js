@@ -42,7 +42,8 @@ function render(){
     return `<article class="card"><div class="cb">
       <div class="meta"><span class="src">${esc(i.source)}</span>${e&&e!=="中立"?`<span class="emo" title="見出しの感情（機械的な目安）">${EMOJI[e]||""}</span>`:""}<span>${ago(i.time)}</span><span class="badge b${b.stars}" title="${esc(b.label||"")}">釣り ${stars(b.stars)}</span></div>
       <h3 class="tja">${esc(i.title_ja||i.title)}</h3>${i.title_ja&&i.title_ja!==i.title?`<p class="ten">${esc(i.title)}</p>`:""}
-      <div class="acts"><a class="ib" href="${esc(i.url)}" target="_blank" rel="noopener nofollow">元記事 ↗</a>${i.disc&&i.disc!==i.url?`<a class="ib" href="${esc(i.disc)}" target="_blank" rel="noopener nofollow">議論 ↗</a>`:""}<button class="ib" data-chk="${esc(i.title)}">🧊 判定</button><button class="ib" data-sum="${esc(i.id)}">📝 要約</button><button class="ib" data-share="${esc(i.id)}">🔗 共有</button></div>
+      <div class="acts"><a class="ib" href="${esc(i.url)}" target="_blank" rel="noopener nofollow">元記事 ↗</a>${i.disc&&i.disc!==i.url?`<a class="ib" href="${esc(i.disc)}" target="_blank" rel="noopener nofollow">議論 ↗</a>`:""}<button class="ib" data-chk="${esc(i.title)}" data-cid="${esc(i.id)}">🧊 判定</button><button class="ib" data-sum="${esc(i.id)}">📝 要約</button><button class="ib" data-share="${esc(i.id)}">🔗 共有</button></div>
+      ${i.prev?.length?`<details class="flow"><summary>🧵 これまでの流れ（${i.prev.length}件）</summary><ul>${i.prev.map(p=>`<li><a href="/a/${esc(p.id)}">${esc(p.t)}</a> <span class="mtag">${esc(p.s)}・${ago(p.time)}</span></li>`).join("")}</ul></details>`:""}
       <div class="sum" id="sum-${esc(i.id)}" hidden></div>
     </div></article>`; }).join("")||'<div class="empty">該当するニュースがありません</div>';
 }
@@ -50,7 +51,7 @@ $("#tabs").onclick=e=>{ const t=e.target.closest(".tab"); if(t){ S.tab=t.dataset
 $("#q").oninput=e=>{ S.q=e.target.value.trim(); render(); };
 $("#hideBait").onchange=e=>{ S.hide=e.target.checked; render(); };
 $("#grid").onclick=async e=>{
-  const b=e.target.closest("[data-chk]"); if(b){ $("#inp").value=b.dataset.chk; scrollTo({top:0,behavior:"smooth"}); check(); return; }
+  const b=e.target.closest("[data-chk]"); if(b){ $("#inp").value=b.dataset.chk; S.chkId=b.dataset.cid; S.chkTitle=b.dataset.chk; scrollTo({top:0,behavior:"smooth"}); check(); return; }
   const sh=e.target.closest("[data-share]");
   if(sh){ const it=D.news.find(i=>i.id===sh.dataset.share); if(it&&window.TSshare) TSshare(location.origin+"/a/"+it.id, it.title_ja||it.title); return; }
   const sm=e.target.closest("[data-sum]");
@@ -105,9 +106,20 @@ function check(){
   $("#res").innerHTML=`<div class="rtop"><div class="meter" style="background:conic-gradient(${c} ${r.score*3.6}deg,#222b3a 0)"><div style="position:absolute;inset:7px;background:#121822;border-radius:50%;display:grid;place-items:center"><div style="color:${c}">${r.score}<small>釣り度/100</small></div></div></div>
     <div style="flex:1;min-width:220px"><div class="stars" style="color:${c}">${stars(r.stars)} <span style="font-size:15px;font-weight:700">${esc(LABELS[r.stars]||"")}</span></div></div></div>
     <div class="rgrid"><div class="box full"><h3>誇張されている箇所</h3><div class="hl">${highlight(v,r.spans)}</div></div>
-    <div class="box full"><h3>判定の理由</h3><ul>${(r.reasons.length?r.reasons:["目立った釣り表現は見つかりませんでした"]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div></div>`;
+    <div class="box full"><h3>判定の理由</h3><ul>${(r.reasons.length?r.reasons:["目立った釣り表現は見つかりませんでした"]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+    <div class="box full" id="gapBox"><h3>🔍 中身と答え合わせ（AI）</h3>${gapParams(v)?`<p class="mtag">記事の本文をAIが読んで、見出しが盛っていないか確かめます（10秒ほど）</p><button class="btn" id="gapGo">答え合わせする</button>`:`<p class="mtag">記事のURLを貼るか、ニュースカードの「🧊 判定」から開くと、本文と見出しを比べて答え合わせできます。</p>`}</div></div>`;
+  const g=$("#gapGo"); if(g) g.onclick=async()=>{
+    const p=gapParams(v); g.disabled=true; g.textContent="⏳ 本文を読んでいます…";
+    try{ const j=await TSgap(p); $("#gapBox").innerHTML=`<h3>🔍 中身と答え合わせ（AI）</h3>${p.url&&j.title?`<p class="mtag">見出し：${esc(j.title)}</p>`:""}${TSgapHTML(j)}`; }
+    catch(err){ g.disabled=false; g.textContent="答え合わせする"; toast(err.message); }
+  };
 }
-$("#go").onclick=check; $("#inp").onkeydown=e=>{ if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)) check(); };
+function gapParams(v){
+  if(/^https?:\/\/\S+$/.test(v)) return {url:v};
+  if(S.chkId&&S.chkTitle===v) return {id:S.chkId};
+  return null;
+}
+$("#go").onclick=()=>{ if($("#inp").value.trim()!==S.chkTitle) S.chkId=null; check(); }; $("#inp").onkeydown=e=>{ if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)) check(); };
 
 /* ---------- 画面切り替え ---------- */
 function showView(v, fromHash){
@@ -131,6 +143,14 @@ addEventListener("resize",()=>{ setHH(); if(M) M.invalidateSize(); }); setHH();
 
 /* ---------- ダイジェスト ---------- */
 const spark=(arr,w=80,h=20)=>{ if(!arr||arr.length<2) return ""; const mn=Math.min(...arr),mx=Math.max(...arr),r=mx-mn||1; return `<svg width="${w}" height="${h}" class="spk"><polyline points="${arr.map((v,i)=>`${(i/(arr.length-1)*w).toFixed(1)},${(h-(v-mn)/r*h).toFixed(1)}`).join(" ")}" fill="none" stroke="${arr[arr.length-1]>=arr[0]?"#46d39a":"#ff5d6c"}" stroke-width="1.6"/></svg>`; };
+let TODAY=null;
+async function fillHidden(){
+  try{ if(!TODAY) TODAY=(await getJ("/api/today")).day||{}; }catch{ TODAY={}; }
+  const el=$("#hiddenCard"); if(!el) return; const h=TODAY.hidden;
+  el.innerHTML=`<h3>☀ 今日の5本 <a class="mtag" href="/today">すべて見る ›</a></h3><ol class="t5mini">${(TODAY.items||[]).map(i=>`<li><a href="/a/${esc(i.id)}">${esc(i.title_ja||i.title)}</a></li>`).join("")}</ol>`+
+    (h?`<h3 style="margin-top:12px">🕵 今日の穴場 <span class="mtag">海外${h.foreign}件・日本${h.japan}件の話題「${esc(h.topic)}」</span></h3><p style="margin:4px 0"><a href="/a/${esc(h.id)}"><b>${esc(h.title_ja||h.title)}</b></a></p><ul class="t5l">${h.lines.map(l=>`<li>${esc(l)}</li>`).join("")}</ul>`:"");
+  el.hidden=!(TODAY.items?.length);
+}
 function renderDigest(){
   const d=D.digest, three=["world","tech","trivia"].map(k=>d.categories?.[k]?.items?.[0]).filter(Boolean);
   const mx=Math.max(1,...(d.top_countries||[]).map(c=>c.count));
@@ -138,6 +158,7 @@ function renderDigest(){
   const mk=D.markets?.markets||[]; const wk=(D.wiki?.ja||[]).filter(a=>!/メインページ|特別:/.test(a.title)).slice(0,10);
   const hol=D.holidays||{}; const lc=(D.launches?.launches||[]).slice(0,4);
   $("#dgrid").innerHTML=`
+    <div class="dcard wide" id="hiddenCard" hidden></div>
     <div class="dcard wide"><h3>🌏 いまの世界を3行で <span class="mtag">${fmtT(D.meta.updated)} 時点</span></h3><ol style="margin:0;padding-left:22px;font-size:15.5px;line-height:1.9">${three.map(i=>`<li><a href="${esc(i.url)}" target="_blank" rel="noopener nofollow">${esc(i.title_ja||i.title)}</a> <span class="mtag">（${esc(i.source)}）</span></li>`).join("")}</ol></div>
     <div class="dcard"><h3>📍 話題になっている国</h3>${(d.top_countries||[]).map(c=>`<div class="bar"><span class="l">${esc(c.ja)}</span><span class="b" style="width:${c.count/mx*60}%"></span><span class="mtag">${c.count}</span></div>`).join("")}</div>
     <div class="dcard"><h3>🌈 今日の世界のムード</h3><div class="mood">${et.map(([k,v])=>`<i style="flex:${v};background:${em.colors[k]}" title="${k}"></i>`).join("")}</div><div class="samples" style="margin-top:6px">${et.sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<span class="chip">${EMOJI[k]} ${k} ${Math.round(v/es*100)}%</span>`).join("")}</div><p class="mtag">英語見出しの言葉から機械的に分類した目安です</p></div>
@@ -146,6 +167,7 @@ function renderDigest(){
     ${wk.length?`<div class="dcard"><h3>📚 ウィキペディア急上昇（日本語版）</h3><ol class="wk">${wk.map(a=>`<li><a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.title)}</a> <span class="mtag">${a.views.toLocaleString()}回</span><div class="m mtag">${esc(a.desc||"")}</div></li>`).join("")}</ol><p class="mtag">出典: Wikipedia（閲覧数）</p></div>`:""}
     ${(hol.today||hol.onthisday)?`<div class="dcard"><h3>🎌 今日は何の日</h3><div class="mtag">${(hol.today||[]).length?"今日が祝日: "+[...new Map(hol.today.map(t=>[t.code,t])).values()].map(t=>`${esc(t.country)}（${esc(t.name)}）`).join("、"):"今日が祝日の国はありません"}</div><ul class="dl">${(hol.onthisday||[]).slice(0,5).map(e=>`<li><b>${e.year}年</b> ${esc(e.text)}</li>`).join("")}</ul><p class="mtag">出典: Wikipedia「On this day」（CC BY-SA）・Nager.Date</p></div>`:""}
     ${lc.length?`<div class="dcard"><h3>🚀 ロケット打ち上げ予定</h3><ul class="dl">${lc.map(l=>`<li><b>${esc(l.name)}</b><div class="m mtag">${esc(l.provider)} ・ ${esc(l.location)} ・ ${new Date(l.net).toLocaleString("ja-JP")}</div></li>`).join("")}</ul><p class="mtag">出典: Launch Library 2</p></div>`:""}`;
+  fillHidden();
 }
 
 /* ---------- 温度差 ---------- */

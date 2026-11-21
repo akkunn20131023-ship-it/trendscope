@@ -45,3 +45,35 @@ export async function summarizeItem(env, item) {
   try { await env.TS.put("sum:" + item.id, JSON.stringify(res), { expirationTtl: 30 * 86400 }); } catch {}
   return res;
 }
+
+// 見出しと本文の答え合わせ：見出しが中身をどれくらい正確に表しているか
+const VERDICTS = [["見出しどおり", 1], ["少し盛っている", 2], ["かなり盛っている", 3], ["見出しと中身が違う", 4]];
+export async function gapCheck(env, { title, url }) {
+  if (!env.AI) throw new SumError(503, "AI機能はまだ準備中です");
+  const page = await fetchPage(url);
+  if (!page || page.text.length < 200) throw new SumError(422, "記事の本文を取得できなかったため、答え合わせできません。");
+  const t = title || page.title;
+  if (!t) throw new SumError(422, "見出しが分かりませんでした。");
+  const prompt = `ニュースの見出しと本文を比べて、見出しが本文の内容をどれだけ正確に表しているかを判定してください。本文に書かれていることだけを根拠にしてください。\n` +
+    `出力形式（この形式以外は書かない）：\n判定: （「見出しどおり」「少し盛っている」「かなり盛っている」「見出しと中身が違う」のどれか1つ）\n理由: （1〜2文の日本語）\n要約:\n- （本文の要点1・60字以内）\n- （要点2）\n- （要点3）\n\n見出し: ${t}\n\n本文:\n${page.text}`;
+  let r;
+  try { r = await chat(env.AI, prompt, { max_tokens: 700 }); } catch { throw new SumError(503, "AIが混み合っています。少し待ってからお試しください。"); }
+  const txt = r.text;
+  const vline = (txt.match(/判定[:：]\s*(.+)/) || [])[1] || "";
+  const v = VERDICTS.find(([k]) => vline.includes(k)) || VERDICTS.find(([k]) => txt.includes(k));
+  if (!v) throw new SumError(502, "判定できませんでした。");
+  const reason = ((txt.match(/理由[:：]\s*([\s\S]*?)(?:\n\s*要約[:：]|$)/) || [])[1] || "").replace(/\s+/g, " ").trim().slice(0, 300);
+  const lines = ((txt.split(/要約[:：]/)[1] || "").match(/^\s*[-・*•]\s*(.+)$/gm) || []).map(unbullet).filter(Boolean).slice(0, 3);
+  return { title: t, verdict: v[0], level: v[1], reason, lines, at: Date.now(), note: "AIによる自動判定です。最終的には元記事でご確認ください。" };
+}
+
+async function fetchPage(url) {
+  if (!/^https?:\/\//.test(url || "")) return null;
+  try {
+    const r = await fetch(url, { headers: { "User-Agent": UA, Accept: "text/html,application/xhtml+xml" }, redirect: "follow", signal: AbortSignal.timeout(8000) });
+    if (!r.ok || !(r.headers.get("Content-Type") || "").includes("html")) return null;
+    const html = new TextDecoder().decode((await r.arrayBuffer()).slice(0, 1500000));
+    const title = ((html.match(/<meta[^>]+property=["']og:title["'][^>]*content=["']([^"']+)["']/i) || html.match(/<title[^>]*>([^<]+)<\/title>/i) || [])[1] || "").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim().slice(0, 300);
+    return { title, text: extractText(html) };
+  } catch { return null; }
+}

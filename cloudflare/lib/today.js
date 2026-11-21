@@ -17,11 +17,37 @@ function pickCandidates(news) {
   return out;
 }
 
-export async function maybeBuildToday(env, news, force = false) {
+// 「今日の穴場」：海外で話題なのに日本ではほぼ報じられていない話題から1本
+async function pickHidden(env, news, compare, exclude) {
+  const topics = (compare?.quiet_in_japan || []).filter((t) => t.topic && t.topic.length >= 2 && t.topic !== "ニュース" && (t.japan || 0) <= 1)
+    .sort((a, b) => (b.kind === "国") - (a.kind === "国") || (b.gap || 0) - (a.gap || 0));
+  for (const t of topics) {
+    const cands = (news || []).filter((i) => !exclude.has(i.id) && (i.bait?.stars || 1) <= 2 && /^https?:\/\//.test(i.url || "") && (i.title_ja || "").includes(t.topic));
+    for (const i of cands.slice(0, 2)) {
+      try {
+        const s = await summarizeItem(env, i);
+        return { id: i.id, title: i.title, title_ja: i.title_ja || "", source: i.source, url: i.url, bait: i.bait, lines: s.lines, why: s.why,
+          topic: t.topic, foreign: t.foreign, japan: t.japan };
+      } catch {}
+    }
+  }
+  return null;
+}
+
+export async function maybeBuildToday(env, news, force = false, compare = null) {
   if (!env.TS || !env.AI) return { skipped: "no AI" };
   const date = jstDate();
   if (!force && jst().getUTCHours() < 6) return { skipped: "before 6am" };
-  if (!force && (await env.TS.get("today:" + date))) return { skipped: "exists" };
+  if (!force) {
+    let cur = null; try { cur = JSON.parse((await env.TS.get("today:" + date)) || "null"); } catch {}
+    if (cur) {
+      if (cur.hidden || cur.hiddenTried) return { skipped: "exists" };
+      cur.hidden = await pickHidden(env, news, compare, new Set(cur.items.map((i) => i.id)));
+      cur.hiddenTried = true;
+      await env.TS.put("today:" + date, JSON.stringify(cur), { expirationTtl: 120 * 86400 });
+      return { skipped: "exists", hidden: !!cur.hidden };
+    }
+  }
   const cands = pickCandidates(news), items = [], errors = [];
   for (let k = 0; k < cands.length && items.length < 5; k += 5) {
     const group = cands.slice(k, k + (5 - items.length) + 1);
@@ -30,7 +56,8 @@ export async function maybeBuildToday(env, news, force = false) {
       items.push({ id: r.i.id, title: r.i.title, title_ja: r.i.title_ja || "", source: r.i.source, url: r.i.url, cat: r.i.cat, time: r.i.time, bait: r.i.bait, lines: r.s.lines, why: r.s.why });
   }
   if (items.length < 3) return { skipped: "not enough", got: items.length, tried: cands.length, errors };
-  await env.TS.put("today:" + date, JSON.stringify({ date, built: Date.now(), items }), { expirationTtl: 120 * 86400 });
+  const hidden = await pickHidden(env, news, compare, new Set(items.map((i) => i.id)));
+  await env.TS.put("today:" + date, JSON.stringify({ date, built: Date.now(), items, hidden, hiddenTried: true }), { expirationTtl: 120 * 86400 });
   let idx = []; try { idx = JSON.parse((await env.TS.get("today:index")) || "[]"); } catch {}
   idx = [date, ...idx.filter((d) => d !== date)].slice(0, 60);
   await env.TS.put("today:index", JSON.stringify(idx));

@@ -23,6 +23,15 @@ export async function todayPage(request, env, date) {
       <div class="acts"><a class="ib" href="${esc(i.url)}" target="_blank" rel="noopener nofollow">元記事 ↗</a><button class="ib" data-share-url="${origin}/a/${esc(i.id)}" data-share-title="${esc(t)}">🔗 共有</button></div>
     </div></article>`;
   }).join("") : `<div class="card"><div class="cb"><p>今日の5本は、毎朝6時ごろに用意されます。もう少しお待ちください。</p><p><a class="btn" href="/">最新ニュースを見る</a></p></div></div>`;
+  const hd = day?.hidden;
+  const hiddenHtml = hd ? `<h2 class="t5p">🕵 今日の穴場 <span class="mtag">海外で${hd.foreign}件・日本で${hd.japan}件の話題「${esc(hd.topic)}」</span></h2>
+    <article class="card t5 hidden5"><div class="cb">
+      <div class="meta"><span class="src">${esc(hd.source)}</span><span class="badge b${Math.max(1, Math.min(5, hd.bait?.stars || 1))}">釣り ${STAR(Math.max(1, Math.min(5, hd.bait?.stars || 1)))}</span></div>
+      <h2 class="tja"><a href="/a/${esc(hd.id)}">${esc(hd.title_ja || hd.title)}</a></h2>${hd.title_ja && hd.title_ja !== hd.title ? `<p class="ten">${esc(hd.title)}</p>` : ""}
+      <ul class="t5l">${hd.lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>
+      ${hd.why ? `<details><summary>💡 なぜ話題？</summary><p>${esc(hd.why)}</p></details>` : ""}
+      <div class="acts"><a class="ib" href="${esc(hd.url)}" target="_blank" rel="noopener nofollow">元記事 ↗</a><button class="ib" data-share-url="${origin}/a/${esc(hd.id)}" data-share-title="${esc(hd.title_ja || hd.title)}">🔗 共有</button></div>
+    </div></article>` : "";
   const past = idx.filter((d) => !day || d !== day.date).slice(0, 14);
   const html = `<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -33,18 +42,19 @@ export async function todayPage(request, env, date) {
 <meta property="og:url" content="${esc(url)}"><meta property="og:image" content="${origin}/icon-512.png">
 <meta name="twitter:card" content="summary"><meta name="theme-color" content="#0d1016">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="stylesheet" href="/style.css?v=4">
+<link rel="stylesheet" href="/style.css?v=5">
 </head><body>
 <header><div class="wrap hrow"><a class="logo" href="/">🌍 <span>TrendScope</span></a></div></header>
 <main class="wrap share">
   <h1 class="t5h">${esc(heading)}</h1>
   <p class="mtag">${day ? `${esc(jpDate(day.date))}・朝1分で世界のいまをチェック。` : ""}要約はAIによる自動処理です。正確な内容は元記事でご確認ください。</p>
   ${body}
+  ${hiddenHtml}
   <div class="acts" style="margin:14px 0"><a class="btn" href="/">ほかのニュースも見る</a>${day ? `<button class="ib" data-share-url="${esc(url)}" data-share-title="${esc(heading)}">🔗 このページを共有</button>` : ""}</div>
   ${past.length ? `<h2 class="t5p">📚 過去の5本</h2><p class="t5past">${past.map((d) => `<a href="/today/${d}">${esc(jpDate(d))}</a>`).join("")}</p>` : ""}
 </main>
 <div id="tsBox"></div><div class="toast" id="toast"></div>
-<script src="/share.js?v=4"></script>
+<script src="/share.js?v=5"></script>
 </body></html>`;
   return new Response(html, { status: day || !date ? 200 : 404, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=300" } });
 }

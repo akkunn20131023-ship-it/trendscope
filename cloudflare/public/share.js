@@ -28,6 +28,15 @@
     return j;
   }
   window.TSsummary = summary;
+  window.TSgap = async (params) => {
+    if (!(await human())) throw new Error("ロボット確認に失敗しました");
+    const r = await fetch("/api/gap?" + new URLSearchParams(params));
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || "答え合わせできませんでした");
+    return j;
+  };
+  const VC = { 1: "#46d39a", 2: "#ffd34d", 3: "#ff9f43", 4: "#ff3b4f" };
+  window.TSgapHTML = (j) => `<div class="gapv" style="border-color:${VC[j.level]}"><b style="color:${VC[j.level]}">${["", "✅", "🟡", "🟠", "❌"][j.level]} ${esc(j.verdict)}</b>${j.reason ? `<p>${esc(j.reason)}</p>` : ""}</div>${j.lines?.length ? `<h4>本文の要点</h4><ul>${j.lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>` : ""}<p class="mtag">${esc(j.note || "")}</p>`;
   window.TSsumHTML = (j) => `<h2>📝 3行要約</h2><ul>${j.lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>${j.why ? `<h2>💡 なぜ話題？</h2><p>${esc(j.why.replace(/(^|\s)-\s+/g, "$1"))}</p>` : ""}<p class="mtag">${esc(j.note || "")}</p>`;
   document.addEventListener("click", (e) => { const b = e.target.closest("[data-share-url]"); if (b) shareIt(b.dataset.shareUrl, b.dataset.shareTitle); });
   const sb = $("#shareBtn"); if (sb) sb.onclick = () => shareIt(sb.dataset.url, sb.dataset.title);
