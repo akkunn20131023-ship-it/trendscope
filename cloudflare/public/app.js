@@ -235,7 +235,7 @@ function trafficPopup(i){
     const e=i.eta||{}; const st=e.status==="解除済み"?"✅ 見出しでは解除済み":e.status==="解除見込みあり"?`🕒 見出しの見込み：${esc(e.text)}`:e.status==="解除の見通しなし"?"⚠ 解除の見通しは立っていない（報道）":"解除の見込みは報道されていません";
     return `<h3>${ic} ${lb}の報道 <span class="mtag">${esc(i.pref)}</span></h3><p style="font-size:15px">${esc(i.title)}</p><div><b>${st}</b></div><div class="mtag">${esc(i.source)}${i.time?"・"+ago(i.time):""}</div><p><a class="ib" href="${esc(i.url)}" target="_blank" rel="noopener nofollow">記事を開く ↗</a></p><p class="mtag">日本の公式な規制データは無料公開されていないため、ニュースの見出しを都道府県の位置に表示しています。正確な情報は日本道路交通情報センター（JARTIC）や各高速道路会社でご確認ください。</p>`;
   }
-  return `<h3>${ic} ${lb} <span class="mtag">ドイツ ${esc(i.road)}</span></h3><div style="font-size:15px">${esc(i.section)}</div><div class="mtag">方向：${esc(i.dir)}</div>
+  return `<h3>${ic} ${i.ramp?"出入口の閉鎖":i.blocked&&i.kind==="closure"?"全面通行止め":lb} <span class="mtag">ドイツ ${esc(i.road)}</span></h3><div style="font-size:15px">${esc(i.section)}</div><div class="mtag">方向：${esc(i.dir)}</div>
     <div class="eta" style="border-color:${col}">${etaText(i)}</div>
     ${i.tags?.length?`<div>${i.tags.map(t=>`<span class="tg">${esc(t)}</span>`).join("")}</div>`:""}
     ${i.start?`<div class="mtag">開始：${jt(i.start)}</div>`:""}<p class="mtag">出典：Autobahn GmbH（ドイツ連邦高速道路会社）の公開データ</p>`;
