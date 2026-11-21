@@ -204,12 +204,13 @@ function initMap(){
 const timers={};
 function toggle(k,on){
   clearInterval(timers[k]); if(!on){ M.removeLayer(LY[k]); $("#c-"+k).textContent=""; return; }
-  LY[k].addTo(M); LOAD[k](); const every={quakes:120000,iss:5000,planes:20000,night:60000,weather:900000,air:1800000}[k];
+  LY[k].addTo(M); LOAD[k](); const every={traffic:600000,quakes:120000,iss:5000,planes:20000,night:60000,weather:900000,air:1800000}[k];
   if(every) timers[k]=setInterval(()=>{ if(curView==="map" && !document.hidden) LOAD[k](); }, every);
 }
 function refreshMapData(){ ["conflicts","news","launch","traffic"].forEach(k=>{ if(M.hasLayer(LY[k])) LOAD[k](); }); }
 const getJ=async u=>{ const r=await fetch(u); if(!r.ok) throw new Error(r.status); return r.json(); };
 /* ---------- 事故・通行止め ---------- */
+let TDE={};
 const TK={accident:["💥","事故","#ff3b4f"],closure:["⛔","通行止め","#ff8a3d"],jam:["🐢","大きな渋滞","#ffd34d"]};
 const hm=sec=>{ sec=Math.max(0,Math.round(sec/60)); const h=Math.floor(sec/60),m=sec%60; return h?`${h}時間${m?m+"分":""}`:`${m}分`; };
 const jt=t=>new Date(t*1000).toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
@@ -263,7 +264,12 @@ const LOAD={
     $("#c-air").textContent=CITIES.length+"都市"; }catch{ $("#c-air").textContent="失敗"; } },
   async iss(){ try{ const d=await getJ("https://api.wheretheiss.at/v1/satellites/25544"); LY.iss.clearLayers(); L.marker([d.latitude,d.longitude],{icon:L.divIcon({className:"",html:'<div style="font-size:22px">🛰</div>',iconSize:[24,24],iconAnchor:[12,12]})}).addTo(LY.iss).bindPopup(`ISS 高度${Math.round(d.altitude)}km`); $("#c-iss").textContent=`高度${Math.round(d.altitude)}km`; }catch{ $("#c-iss").textContent="失敗"; } },
   planes(){ loadPlanes(); },
-  traffic(){ if(!D) return; LY.traffic.clearLayers(); const T=D.traffic||{}; const all=[...(T.de||[]),...(T.jp||[])];
+  async traffic(){ if(!D) return;
+    if(!TDE.at||Date.now()-TDE.at>600000){ $("#c-traffic").textContent="読み込み中…";
+      const parts=await Promise.all([0,1,2,3,4,5].map(p=>getJ("/api/traffic-de?part="+p).catch(()=>({items:[]}))));
+      TDE={at:Date.now(),items:parts.flatMap(p=>p.items||[])}; }
+    LY.traffic.clearLayers(); const T=D.traffic||{}; const seen=new Set();
+    const all=[...TDE.items,...(T.de||[]),...(T.jp||[])].filter(i=>!seen.has(i.id)&&seen.add(i.id));
     all.forEach(i=>{ const [ic,,col]=TK[i.kind]||TK.jam;
       if(i.line?.length>1) L.polyline(i.line,{color:col,weight:5,opacity:.85}).addTo(LY.traffic).on("click",()=>side(trafficPopup(i)));
       L.marker([i.lat,i.lon],{icon:L.divIcon({className:"",html:`<div class="tmk${i.country==="JP"?" jp":""}" style="border-color:${col}">${i.country==="JP"?"📰":ic}</div>`,iconSize:[26,26],iconAnchor:[13,13]})})

@@ -225,11 +225,8 @@ def japan():
 
 
 def traffic():
+    # ドイツ分は公開サイト（Cloudflare）側の /api/traffic-de で直接取得する（PCのPythonでは証明書の都合で取れない環境があるため）
     de, jp = [], []
-    try:
-        de = germany()
-    except Exception as e:
-        H.get("log", print)(f"交通情報(ドイツ)の取得に失敗: {type(e).__name__}")
     try:
         jp = japan()
     except Exception as e:
