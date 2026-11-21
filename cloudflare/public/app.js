@@ -182,7 +182,7 @@ function renderCompare(){
 /* ---------- 世界マップ ---------- */
 const LAYERS=[["conflicts","#ff5d6c","紛争・対立地域",true],["news","#5b9dff","ニュースの話題地",true],["quakes","#ff9f43","地震（24時間・M2.5+）",false],
   ["weather","#90caf9","世界の天気と現地時刻",false],["air","#9ccc65","空気の質（AQI）",false],["iss","#b18cff","国際宇宙ステーション",false],
-  ["planes","#ffd34d","飛行機（地図の中心付近）",false],["launch","#ffab40","ロケット打ち上げ予定",false],["night","#3949ab","昼と夜の境界線",true]];
+  ["planes","#ffd34d","飛行機（地図の中心付近）",false],["traffic","#ff5252","事故・通行止め（解除の目安つき）",false],["launch","#ffab40","ロケット打ち上げ予定",false],["night","#3949ab","昼と夜の境界線",true]];
 const LVC={war:"#ff3b4f",high:"#ff6b3d",mid:"#ffb547",tension:"#c9a6ff"};
 const CITIES=[["東京",35.68,139.69],["ソウル",37.57,126.98],["北京",39.9,116.4],["シンガポール",1.35,103.82],["ニューデリー",28.61,77.21],["ドバイ",25.2,55.27],["モスクワ",55.75,37.62],["キーウ",50.45,30.52],["カイロ",30.04,31.24],["ナイロビ",-1.29,36.82],["パリ",48.86,2.35],["ロンドン",51.51,-0.13],["ニューヨーク",40.71,-74.0],["ロサンゼルス",34.05,-118.24],["メキシコシティ",19.43,-99.13],["サンパウロ",-23.55,-46.63],["シドニー",-33.87,151.21],["ヨハネスブルグ",-26.2,28.05]];
 const side=html=>{ $("#sideBody").innerHTML=html; $("#layers").classList.remove("open"); $("#side").classList.add("show"); $("#side").scrollTop=0; };
@@ -207,8 +207,38 @@ function toggle(k,on){
   LY[k].addTo(M); LOAD[k](); const every={quakes:120000,iss:5000,planes:20000,night:60000,weather:900000,air:1800000}[k];
   if(every) timers[k]=setInterval(()=>{ if(curView==="map" && !document.hidden) LOAD[k](); }, every);
 }
-function refreshMapData(){ ["conflicts","news","launch"].forEach(k=>{ if(M.hasLayer(LY[k])) LOAD[k](); }); }
+function refreshMapData(){ ["conflicts","news","launch","traffic"].forEach(k=>{ if(M.hasLayer(LY[k])) LOAD[k](); }); }
 const getJ=async u=>{ const r=await fetch(u); if(!r.ok) throw new Error(r.status); return r.json(); };
+/* ---------- 事故・通行止め ---------- */
+const TK={accident:["💥","事故","#ff3b4f"],closure:["⛔","通行止め","#ff8a3d"],jam:["🐢","大きな渋滞","#ffd34d"]};
+const hm=sec=>{ sec=Math.max(0,Math.round(sec/60)); const h=Math.floor(sec/60),m=sec%60; return h?`${h}時間${m?m+"分":""}`:`${m}分`; };
+const jt=t=>new Date(t*1000).toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
+function etaText(i){
+  const now=Date.now()/1000;
+  if(i.end){
+    if(i.end>now) return `<b>解除予定：${jt(i.end)}</b>（あと約${hm(i.end-now)}）<div class="mtag">道路管理者が発表した予定時刻です</div>`;
+    return `<b>解除予定時刻を過ぎています</b><div class="mtag">まもなく解除される見込みです</div>`;
+  }
+  if(i.kind==="accident"){
+    const el=i.start?now-i.start:null;
+    if(el!=null&&el<120*60) return `<b>解除まで：あと約${hm(Math.max(0,60*60-el))}〜${hm(120*60-el)}（目安）</b><div class="mtag">発生から約${hm(el)}。事故の処理・撤去は通常1〜2時間ほどかかるため、その一般的な時間から計算した推定です</div>`;
+    if(el!=null) return `<b>発生から約${hm(el)}経過（長引いています）</b><div class="mtag">一般的な処理時間（1〜2時間）を超えています。大きな事故の可能性があります</div>`;
+    return `<b>解除まで：通常1〜2時間ほど（目安）</b>`;
+  }
+  if(i.kind==="jam") return `<b>渋滞による遅れ：約${i.delay??"?"}分</b>${i.speed!=null?`<div class="mtag">平均時速 ${i.speed}km</div>`:""}<div class="mtag">渋滞の解消時刻は発表されていません</div>`;
+  return `<b>解除予定：発表なし</b>`;
+}
+function trafficPopup(i){
+  const [ic,lb,col]=TK[i.kind]||TK.jam;
+  if(i.country==="JP"){
+    const e=i.eta||{}; const st=e.status==="解除済み"?"✅ 見出しでは解除済み":e.status==="解除見込みあり"?`🕒 見出しの見込み：${esc(e.text)}`:e.status==="解除の見通しなし"?"⚠ 解除の見通しは立っていない（報道）":"解除の見込みは報道されていません";
+    return `<h3>${ic} ${lb}の報道 <span class="mtag">${esc(i.pref)}</span></h3><p style="font-size:15px">${esc(i.title)}</p><div><b>${st}</b></div><div class="mtag">${esc(i.source)}${i.time?"・"+ago(i.time):""}</div><p><a class="ib" href="${esc(i.url)}" target="_blank" rel="noopener nofollow">記事を開く ↗</a></p><p class="mtag">日本の公式な規制データは無料公開されていないため、ニュースの見出しを都道府県の位置に表示しています。正確な情報は日本道路交通情報センター（JARTIC）や各高速道路会社でご確認ください。</p>`;
+  }
+  return `<h3>${ic} ${lb} <span class="mtag">ドイツ ${esc(i.road)}</span></h3><div style="font-size:15px">${esc(i.section)}</div><div class="mtag">方向：${esc(i.dir)}</div>
+    <div class="eta" style="border-color:${col}">${etaText(i)}</div>
+    ${i.tags?.length?`<div>${i.tags.map(t=>`<span class="tg">${esc(t)}</span>`).join("")}</div>`:""}
+    ${i.start?`<div class="mtag">開始：${jt(i.start)}</div>`:""}<p class="mtag">出典：Autobahn GmbH（ドイツ連邦高速道路会社）の公開データ</p>`;
+}
 const LOAD={
   conflicts(){ if(!D) return; LY.conflicts.clearLayers(); (D.conflicts?.conflicts||[]).forEach(c=>{ const col=LVC[c.level];
     L.circleMarker([c.lat,c.lon],{radius:{war:11,high:9,mid:7,tension:6}[c.level],color:col,fillColor:col,fillOpacity:.55,weight:2}).addTo(LY.conflicts)
@@ -233,6 +263,12 @@ const LOAD={
     $("#c-air").textContent=CITIES.length+"都市"; }catch{ $("#c-air").textContent="失敗"; } },
   async iss(){ try{ const d=await getJ("https://api.wheretheiss.at/v1/satellites/25544"); LY.iss.clearLayers(); L.marker([d.latitude,d.longitude],{icon:L.divIcon({className:"",html:'<div style="font-size:22px">🛰</div>',iconSize:[24,24],iconAnchor:[12,12]})}).addTo(LY.iss).bindPopup(`ISS 高度${Math.round(d.altitude)}km`); $("#c-iss").textContent=`高度${Math.round(d.altitude)}km`; }catch{ $("#c-iss").textContent="失敗"; } },
   planes(){ loadPlanes(); },
+  traffic(){ if(!D) return; LY.traffic.clearLayers(); const T=D.traffic||{}; const all=[...(T.de||[]),...(T.jp||[])];
+    all.forEach(i=>{ const [ic,,col]=TK[i.kind]||TK.jam;
+      if(i.line?.length>1) L.polyline(i.line,{color:col,weight:5,opacity:.85}).addTo(LY.traffic).on("click",()=>side(trafficPopup(i)));
+      L.marker([i.lat,i.lon],{icon:L.divIcon({className:"",html:`<div class="tmk${i.country==="JP"?" jp":""}" style="border-color:${col}">${i.country==="JP"?"📰":ic}</div>`,iconSize:[26,26],iconAnchor:[13,13]})})
+       .addTo(LY.traffic).bindTooltip(i.country==="JP"?esc(i.title.slice(0,40)):`${ic} ${esc(i.road)} ${esc(i.section)}`).on("click",()=>side(trafficPopup(i))); });
+    $("#c-traffic").textContent=all.length+"件"; },
   launch(){ if(!D) return; LY.launch.clearLayers(); (D.launches?.launches||[]).filter(l=>l.lat!=null).forEach(l=>L.marker([l.lat,l.lon],{icon:L.divIcon({className:"",html:'<div style="font-size:18px">🚀</div>',iconSize:[22,22],iconAnchor:[11,11]})}).addTo(LY.launch).bindPopup(`<b>${esc(l.name)}</b><br>${esc(l.provider)}<br>${new Date(l.net).toLocaleString("ja-JP")}`)); $("#c-launch").textContent=(D.launches?.launches||[]).length+"件"; },
   night(){ LY.night.clearLayers(); L.polygon(nightPolygon(new Date()),{stroke:false,fillColor:"#000814",fillOpacity:.38,interactive:false}).addTo(LY.night); },
 };

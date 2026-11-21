@@ -4,7 +4,7 @@ import { translatePayload } from "../../lib/translate.js";
 import { updateArchive } from "../../lib/archive.js";
 import { maybeBuildToday } from "../../lib/today.js";
 
-const ALLOW = ["meta", "news", "digest", "geo", "conflicts", "emotions", "patterns", "markets", "holidays", "launches", "wiki", "compare"];
+const ALLOW = ["meta", "news", "digest", "geo", "conflicts", "emotions", "patterns", "markets", "holidays", "launches", "wiki", "compare", "traffic"];
 
 export async function onRequestPost({ request, env, waitUntil }) {
   const lim = limited(request, "upload", 10, 60); if (lim) return lim;

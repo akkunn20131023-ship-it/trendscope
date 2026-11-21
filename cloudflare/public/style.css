@@ -265,3 +265,9 @@ details.flow a{color:var(--text)}
 .t5mini{margin:4px 0;padding-left:22px;line-height:1.85;font-size:14.5px}
 .t5mini a,#hiddenCard a{color:var(--text)}
 .hidden5{border-color:rgba(255,196,77,.4)}
+
+/* ===== 事故・通行止め ===== */
+.tmk{width:24px;height:24px;border-radius:50%;background:#121822;border:2px solid;display:grid;place-items:center;font-size:13px;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+.tmk.jp{opacity:.9}
+.eta{border-left:4px solid;padding:8px 10px;margin:10px 0;border-radius:8px;background:rgba(255,255,255,.04);font-size:15px;line-height:1.6}
+.tg{display:inline-block;font-size:12px;padding:2px 8px;margin:2px 4px 2px 0;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid var(--line)}

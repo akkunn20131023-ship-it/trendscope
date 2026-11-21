@@ -31,6 +31,7 @@ import features as ft
 import features2 as f2
 import features3 as f3
 import features4 as f4
+import features5 as f5
 import subprocess
 
 if sys.stdout is None or sys.stderr is None:  # pythonw（ウィンドウなし起動）ではログをファイルへ
@@ -1168,7 +1169,7 @@ def public_compare():
 def public_payload():
     return f4.build_public_payload(_news, digest, geo_summary, conflicts_payload, lambda: f3.emotions(_news.get("items", [])),
                                    {"markets": f2.markets, "holidays": f2.holidays, "launches": f3.launches,
-                                    "wiki": f2.wiki_trending, "compare": public_compare})
+                                    "wiki": f2.wiki_trending, "compare": public_compare, "traffic": f5.traffic})
 
 
 VERSION = code_version()
