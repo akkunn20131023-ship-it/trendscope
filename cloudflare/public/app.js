@@ -222,7 +222,7 @@ function etaText(i){
   }
   if(i.kind==="accident"){
     const el=i.start?now-i.start:null;
-    if(el!=null&&el<120*60) return `<b>解除まで：あと約${hm(Math.max(0,60*60-el))}〜${hm(120*60-el)}（目安）</b><div class="mtag">発生から約${hm(el)}。事故の処理・撤去は通常1〜2時間ほどかかるため、その一般的な時間から計算した推定です</div>`;
+    if(el!=null&&el<120*60) return `<b>解除まで：${el<60*60?`あと約${hm(60*60-el)}〜${hm(120*60-el)}`:`あと約${hm(120*60-el)}以内`}（目安）</b><div class="mtag">発生から約${hm(el)}。事故の処理・撤去は通常1〜2時間ほどかかるため、その一般的な時間から計算した推定です</div>`;
     if(el!=null) return `<b>発生から約${hm(el)}経過（長引いています）</b><div class="mtag">一般的な処理時間（1〜2時間）を超えています。大きな事故の可能性があります</div>`;
     return `<b>解除まで：通常1〜2時間ほど（目安）</b>`;
   }
