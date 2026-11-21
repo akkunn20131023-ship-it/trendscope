@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>TrendScope｜海外ニュースを日本語でまとめ読み — 盛らない世界ニュース</title>
-<meta name="description" content="海外の面白ニュース・話題を日本語でまとめ読みできる無料サイト。見出しの「釣り度」を冷静に判定し、毎朝の「今日の5本」3行要約や、紛争・地震・天気の世界地図も。">
+<title>TrendScope JP（トレンドスコープ）｜海外ニュースを日本語でまとめ読み・釣りタイトル判定</title>
+<meta name="description" content="TrendScope JP（トレンドスコープ）は、海外の面白ニュース・話題を日本語でまとめ読みできる無料サイト。見出しの「釣り度」判定、毎朝の「今日の5本」3行要約、紛争・地震・事故・通行止めの世界地図も。">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="TrendScope">
+<meta property="og:site_name" content="TrendScope JP">
 <meta property="og:image" content="/icon-512.png">
-<meta property="og:title" content="TrendScope｜盛らない世界ニュースまとめ">
+<meta property="og:title" content="TrendScope JP（トレンドスコープ）｜盛らない世界ニュースまとめ">
 <meta property="og:description" content="世界のニュースを日本語で。見出しの釣り度判定と、紛争・地震・天気の世界地図。">
 <meta name="twitter:card" content="summary">
 <meta name="theme-color" content="#0d1016">
@@ -16,14 +16,14 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="TrendScope">
+<meta name="apple-mobile-web-app-title" content="TrendScope JP">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-<link rel="stylesheet" href="style.css?v=6">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"TrendScope","alternateName":"盛らない世界ニュース","inLanguage":"ja","description":"世界の面白ニュースを日本語で。見出しの釣り度を冷静に判定。"}</script>
+<link rel="stylesheet" href="style.css?v=8">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"TrendScope JP","alternateName":["トレンドスコープ","トレンドスコープJP","TrendScope","盛らない世界ニュース"],"inLanguage":"ja","description":"海外の面白ニュースを日本語でまとめ読み。見出しの釣り度を冷静に判定。"}</script>
 </head>
 <body>
 <header><div class="wrap hrow">
-  <a class="logo" href="/">🌍 <span>TrendScope</span></a>
+  <a class="logo" href="/">🌍 <span>TrendScope</span><b class="jp">JP</b></a>
   <button class="ib" id="instBtn" hidden>📲 アプリにする</button>
   <nav class="views" id="views" aria-label="画面の切り替え">
     <button class="vbtn on" data-v="news">📰 ニュース</button>
@@ -59,7 +59,7 @@
 <section class="view wrap" id="view-compare"><div class="dgrid" id="cmp"></div></section>
 
 <footer class="wrap foot">
-  <p>TrendScope は、海外ニュースサイト・掲示板・公的機関などが公開している情報から<b>見出しとリンク</b>を自動で集め、機械翻訳と自動分析を加えて表示しています。記事の内容・正確性は各リンク先でご確認ください。見出しの日本語訳は機械翻訳（Cloudflare Workers AI）です。</p>
+  <p>TrendScope JP（トレンドスコープ）は、海外ニュースサイト・掲示板・公的機関などが公開している情報から<b>見出しとリンク</b>を自動で集め、機械翻訳と自動分析を加えて表示しています。記事の内容・正確性は各リンク先でご確認ください。見出しの日本語訳は機械翻訳（Cloudflare Workers AI）です。</p>
   <p>データ: Hacker News / Reddit / ScienceDaily / BBC / Good News Network / Googleニュース / USGS / Open-Meteo / wheretheiss.at / adsb.lol / Launch Library 2 / Autobahn GmbH / Wikipedia (CC BY-SA) / 世界銀行 ・ 地図 &copy; Esri, OpenStreetMap</p>
   <p class="mtag" id="metaInfo"></p>
 </footer>
@@ -72,7 +72,7 @@
 <div class="toast" id="toast"></div>
 <div id="tsBox"></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="share.js?v=6"></script>
-<script src="app.js?v=6"></script>
+<script src="share.js?v=8"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>

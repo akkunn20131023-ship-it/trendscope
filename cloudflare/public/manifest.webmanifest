@@ -1,6 +1,6 @@
 {
-  "name": "TrendScope — 盛らない世界ニュース",
-  "short_name": "TrendScope",
+  "name": "TrendScope JP — 盛らない世界ニュース",
+  "short_name": "TrendScope JP",
   "description": "世界の面白ニュースを日本語で。見出しの釣り度を冷静に判定。",
   "lang": "ja",
   "start_url": "/?source=pwa",

@@ -271,3 +271,11 @@ details.flow a{color:var(--text)}
 .tmk.jp{opacity:.9}
 .eta{border-left:4px solid;padding:8px 10px;margin:10px 0;border-radius:8px;background:rgba(255,255,255,.04);font-size:15px;line-height:1.6}
 .tg{display:inline-block;font-size:12px;padding:2px 8px;margin:2px 4px 2px 0;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid var(--line)}
+
+/* ===== サイト名・パンくず・一覧 ===== */
+.logo b.jp{font-size:.62em;margin-left:4px;padding:1px 5px;border-radius:5px;background:var(--acc);color:#0d1016;vertical-align:3px;letter-spacing:.5px}
+.crumb{font-size:13px;color:var(--sub);margin:4px 0 8px}
+.crumb a{color:var(--sub)}
+.clist{list-style:none;margin:8px 0;padding:0}
+.clist li{padding:10px 2px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:3px}
+.clist a{color:var(--text);text-decoration:none;font-size:15.5px;line-height:1.5}
